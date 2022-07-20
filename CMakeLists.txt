@@ -34,6 +34,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 include(ReadVersion)
 include(GoogleTest)
@@ -1206,12 +1207,29 @@ if(WITH_TESTS OR WITH_BENCHMARK_TOOLS)
   target_link_libraries(testharness gtest)
 endif()
 
+if(WITH_TRACE_TESTS)
+  message("get trace tests")
+  SET(MYTESTS
+      trace_example/trace_example.cc
+      )
+  foreach(sourcefile ${MYTESTS})
+    get_filename_component(exename ${sourcefile} NAME_WE)
+    add_executable(${exename}${ARTIFACT_SUFFIX} ${sourcefile})
+    set_target_properties(${exename}${ARTIFACT_SUFFIX}
+      PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD_RELEASE 1
+      OUTPUT_NAME  ${exename}${ARTIFACT_SUFFIX})
+    target_link_libraries(${exename}${ARTIFACT_SUFFIX} ${THIRDPARTY_LIBS} ${ROCKSDB_LIB})
+
+  endforeach(sourcefile ${MYTESTS})
+endif()
+
 if(WITH_TESTS)
   set(TESTS
         db/db_basic_test.cc
         env/env_basic_test.cc
   )
   if(WITH_ALL_TESTS)
+    message("we have all tests, what's going on here")
     list(APPEND TESTS
         cache/cache_reservation_manager_test.cc
         cache/cache_test.cc
