@@ -1211,6 +1211,7 @@ if(WITH_TRACE_TESTS)
   message("get trace tests")
   SET(MYTESTS
       trace_example/trace_example.cc
+      trace_example/trace_op_example.cc
       )
   foreach(sourcefile ${MYTESTS})
     get_filename_component(exename ${sourcefile} NAME_WE)

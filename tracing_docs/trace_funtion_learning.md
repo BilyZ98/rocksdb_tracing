@@ -9,3 +9,10 @@ Motivation understood.
 # The code example 
 `../trace_example/trace_example.cc`
 
+
+
+# How do I plan to learn about the tracing in rocksdb ? 
+So fundamentally my strategy will be run the tests. 
+- run the example code 
+- test with db_bench and ycsb
+- Write down the notes and doc
