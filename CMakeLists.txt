@@ -1531,6 +1531,7 @@ if(WITH_BENCHMARK_TOOLS)
     ${ROCKSDB_LIB} ${GFLAGS_LIB})
 endif()
 
+option(WITH_TRACE_TOOLS "trace tools options" ON)
 if(WITH_TRACE_TOOLS) 
   add_executable(block_cache_trace_analyzer_tool${ARTIFACT_SUFFIX}
     tools/block_cache_analyzer/block_cache_trace_analyzer_tool.cc)
