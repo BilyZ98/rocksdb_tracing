@@ -1544,6 +1544,11 @@ if(WITH_TRACE_TOOLS)
   target_link_libraries(trace_analyzer${ARTIFACT_SUFFIX}
     ${ROCKSDB_LIB} ${GFLAGS_LIB})
 
+  add_executable(io_tracer_parser${ARTIFACT_SUFFIX}
+    tools/io_tracer_parser.cc)
+  target_link_libraries(io_tracer_parser${ARTIFACT_SUFFIX}
+    ${ROCKSDB_LIB} ${GFLAGS_LIB})  
+
 endif()
 
 if(WITH_CORE_TOOLS OR WITH_TOOLS)

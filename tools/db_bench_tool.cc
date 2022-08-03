@@ -3671,10 +3671,25 @@ class Benchmark {
 
         if (!FLAGS_bench_io_trace_file.empty()) {
           std::unique_ptr<TraceWriter> io_trace_writer;
-          NewFileTraceWriter(FLAGS_env, EnvOptions(), FLAGS_bench_io_trace_file,
-                             &io_trace_writer);
+          Status s =
+              NewFileTraceWriter(FLAGS_env, EnvOptions(),
+                                 FLAGS_bench_io_trace_file, &io_trace_writer);
+          if (!s.ok()) {
+            fprintf(stderr,
+                    "Encountered an error when creating trace writer, %s\n",
+                    s.ToString().c_str());
+            ErrorExit();
+          }
+
           TraceOptions trace_opt;
-          db_.db->StartIOTrace(trace_opt, std::move(io_trace_writer));
+          s = db_.db->StartIOTrace(trace_opt, std::move(io_trace_writer));
+          if (!s.ok()) {
+            fprintf(stderr,
+                    "Encountered an error when starting io cache tracing, %s\n",
+                    s.ToString().c_str());
+            ErrorExit();
+          }
+          fprintf(stdout, "Tracing io trace accesses to: [%s]\n", FLAGS_bench_io_trace_file.c_str());
         }
         // Start block cache tracing.
         if (!FLAGS_block_cache_trace_file.empty()) {
