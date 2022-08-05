@@ -14,8 +14,16 @@
 # apply - teach 
 #   
 
-op_dat_file="./trace_data_dir/op_trace-get-0-time_series.txt"
+# op_dat_file="./trace_data_dir/op_trace-get-0-time_series.txt"
+op_dat_file="./trace_data_dir/op_trace-human_readable_trace.txt"
+block_trace_file="./trace_data_dir/block_cache_trace_human_file"
+
+tmp_block_name="/tmp/block_tr_file"
+dot_removed_block_trace_dat=`cat $block_trace_file | tr ',' ' ' > $tmp_block_name`
 
 
-gnuplot -e "op_dat_file='$op_dat_file'" trace_dat.gp
+io_file="./trace_data_dir/io_trace_res.log"
+
+gnuplot -e "op_dat_file='$op_dat_file'" -e "block_file='$tmp_block_name'" \
+   -e "io_file='$io_file'" trace_dat.gp
 
