@@ -45,6 +45,7 @@ $exec_path --benchmarks="readrandom" --use_existing_db --db=$db_path --duration=
 -bench_io_trace_file="$io_trace_file_path"
 
 
+
 if [ -z $disable_bcp ]; then
 bct_path="../build/block_cache_trace_analyzer_tool"
 bct_human_file_path="$trace_data_dir/bct_human_readable_file"

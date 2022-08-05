@@ -57,6 +57,8 @@ io_tracer_parser
 .vs
 .vscode
 .cache
+*.DS_Store
+
 
 java/out
 java/target
@@ -98,3 +100,4 @@ third-party/folly/
 
 
 trace_example/trace_data_dir/
+*/.*.png
