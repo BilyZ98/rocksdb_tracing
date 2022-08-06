@@ -1097,7 +1097,7 @@ endif()
 
 option(WITH_JNI "build with JNI" OFF)
 # Tests are excluded from Release builds
-CMAKE_DEPENDENT_OPTION(WITH_TESTS "build with tests" ON
+CMAKE_DEPENDENT_OPTION(WITH_TESTS "build with tests" OFF
   "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
 option(WITH_BENCHMARK_TOOLS "build with benchmarks" ON)
 option(WITH_CORE_TOOLS "build with ldb and sst_dump" ON)
@@ -1572,3 +1572,15 @@ option(WITH_BENCHMARK "build benchmark tests" OFF)
 if(WITH_BENCHMARK)
   add_subdirectory(${PROJECT_SOURCE_DIR}/microbench/)
 endif()
+
+option(WITH_YCSB_TRACE "ycsb test trace" ON)
+if(WITH_YCSB_TRACE)
+  add_executable(ycsb_run${ARTIFACT_SUFFIX}
+    ycsb_trace/ycsb_run.cc
+    )
+  target_link_libraries(ycsb_run${ARTIFACT_SUFFIX}
+    ${ROCKSDB_LIB} ${GFLAGS_LIB})
+    
+
+endif()
+
