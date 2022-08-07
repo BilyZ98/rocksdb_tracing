@@ -1,0 +1,3 @@
+[submodule "ycsb-workload-gen"]
+	path = ycsb-workload-gen
+	url = git@github.com:nsccgz-storage/ycsb-workload-gen.git
