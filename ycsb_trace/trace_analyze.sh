@@ -14,7 +14,7 @@ trace_analyzer="../build/trace_analyzer"
 $trace_analyzer \
   -analyze_get \
   -output_access_count_stats \
-  -output_dir="$trace_data_dir" \
+  -output_dir="$data_dir" \
   -output_key_stats \
   -output_qps_stats \
   -convert_to_human_readable_trace \
@@ -27,12 +27,12 @@ $trace_analyzer \
   -trace_path="$op_trace_file_path"
 
 block_cache_trace_analyzer="../build/block_cache_trace_analyzer_tool"
-bct_human_file_path="$trace_data_dir/block_trace_human_file"
+bct_human_file_path="$data_dir/block_trace_human_file"
 $block_cache_trace_analyzer \
  -block_cache_trace_path="$block_trace_file_path"\
  -human_readable_trace_file_path="$bct_human_file_path"
 
 io_trace_parser_exec="../build/io_tracer_parser"
-io_parser_res="$trace_data_dir/io_trace_res"
+io_parser_res="$data_dir/io_trace_res"
 $io_trace_parser_exec -io_trace_file="$io_trace_file_path" >  "$io_parser_res"
 
