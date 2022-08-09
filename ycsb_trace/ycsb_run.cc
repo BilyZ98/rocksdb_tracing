@@ -50,6 +50,7 @@ DEFINE_string(db, "/tmp/rocksdb_trace", "db path");
 DEFINE_string(trace_file, "", "op trace file");
 DEFINE_string(block_cache_trace_file, "", "block cache trace file");
 DEFINE_string(ycsb_io_trace_file, "", "io trace file");
+DEFINE_uint64(val_size, 100, "val size");
 
 int main(int argc, char* argv[]) {
   printf("hello there\n");
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]) {
 
   rocksdb::WriteOptions write_options;
   // load phase
-  std::string val_str(100, 'a');
+  std::string val_str(FLAGS_val_size, 'a');
   for (size_t i = 0; i < val_str.length(); i++) {
     val_str[i] = (i + 'a') % 26;
   }
@@ -100,7 +101,10 @@ int main(int argc, char* argv[]) {
   std::vector<uint64_t> run_keys;
   while (run_file_stream >> op_string >> hash_key) {
     run_ops.push_back(get_op_type(op_string));
+    run_keys.push_back(hash_key);
   }
+
+  printf("run entries size: %ld\n", run_ops.size());
 
   // run phase
   rocksdb::TraceOptions trace_options;
@@ -169,7 +173,7 @@ int main(int argc, char* argv[]) {
 
   for (size_t i = 0; i < run_ops.size(); i++) {
     op_type_t op = run_ops[i];
-    rocksdb::Slice key((char*)&run_ops[i], sizeof(uint64_t));
+    rocksdb::Slice key((char*)&run_keys[i], sizeof(uint64_t));
     if (op == READ) {
       std::string get_val;
       rocksdb::ReadOptions read_options;

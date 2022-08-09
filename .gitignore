@@ -98,6 +98,6 @@ fuzz/crash-*
 cmake-build-*
 third-party/folly/
 
-
 trace_example/trace_data_dir/
+*/trace_data_dir/
 */.*.png

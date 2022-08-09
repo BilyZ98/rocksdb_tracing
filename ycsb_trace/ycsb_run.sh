@@ -4,9 +4,10 @@ ycsb_exec="../build/ycsb_run"
 
 
 
-db_path="/tmp/db_dir"
-load_path="../ycsb-workload-gen/ycsb_data/workloada-load-100-100.log.formated"
-run_path="../ycsb-workload-gen/ycsb_data/workloada-run-100-100.log.formated"
+db_path="/mnt/pmem/ycsb_trace"
+rm -rf $db_path
+load_path="../ycsb-workload-gen/ycsb_data/workloada-load-1000000-10000000.log.formated"
+run_path="../ycsb-workload-gen/ycsb_data/workloada-run-1000000-10000000.log.formated"
 
 trace_path="/tmp/trace_file"
 block_cache_trace_path="/tmp/block_cache_trace_file"
