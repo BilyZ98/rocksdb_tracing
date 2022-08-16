@@ -1699,6 +1699,8 @@ class DB {
     return Status::NotSupported("PromoteL0() is not implemented.");
   }
 
+  static  Status StartAllTrace(DB** dbptr);
+
   // Trace DB operations. Use EndTrace() to stop tracing.
   virtual Status StartTrace(const TraceOptions& /*options*/,
                             std::unique_ptr<TraceWriter>&& /*trace_writer*/) {
