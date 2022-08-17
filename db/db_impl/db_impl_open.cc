@@ -2289,6 +2289,7 @@ Status DBImpl::Open(const DBOptions& db_options, const std::string& dbname,
   }
 
   StartDBImplAllTrace(impl);
+  impl->all_trace = true;
   return s;
 }
 }  // namespace ROCKSDB_NAMESPACE

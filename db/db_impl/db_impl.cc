@@ -735,8 +735,36 @@ DBImpl::~DBImpl() {
     s.PermitUncheckedError();
   }
 
+  Status s;
+  if(all_trace) {
+    s = EndTrace();
+    if (!s.ok()) {
+      fprintf(stderr, "Encountered an error ending the trace, %s\n",
+              s.ToString().c_str());
+    }
+
+
+    s = EndBlockCacheTrace(); 
+    if (!s.ok()) {
+        fprintf(stderr,
+                "Encountered an error ending the block cache tracing, %s\n",
+                s.ToString().c_str());
+    }
+
+
+    s = EndIOTrace();
+   if (!s.ok()) {
+      fprintf(stderr,
+          "Encountered an error ending the io tracing, %s\n",
+          s.ToString().c_str());
+    }
+
+
+  }
   closing_status_ = CloseImpl();
   closing_status_.PermitUncheckedError();
+
+
 }
 
 void DBImpl::MaybeIgnoreError(Status* s) const {
