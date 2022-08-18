@@ -760,6 +760,7 @@ DBImpl::~DBImpl() {
     }
 
    fprintf(stdout, "RocksDB: End tracing successfully\n");
+   ROCKS_LOG_INFO(immutable_db_options_.info_log, "End tracing successfully");
 
   }
   closing_status_ = CloseImpl();
