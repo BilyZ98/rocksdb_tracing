@@ -759,6 +759,7 @@ DBImpl::~DBImpl() {
           s.ToString().c_str());
     }
 
+   fprintf(stdout, "RocksDB: End tracing successfully\n");
 
   }
   closing_status_ = CloseImpl();
