@@ -714,6 +714,10 @@ Status DBImpl::CloseHelper() {
     return Status::Incomplete(ret.ToString());
   }
 
+
+  ROCKS_LOG_INFO(immutable_db_options_.info_log, "RocksDB:: End tracing in closeimpl");
+  LogFlush(immutable_db_options_.info_log);
+
   return ret;
 }
 
@@ -760,7 +764,9 @@ DBImpl::~DBImpl() {
     }
 
    fprintf(stdout, "RocksDB: End tracing successfully\n");
+
    ROCKS_LOG_INFO(immutable_db_options_.info_log, "End tracing successfully");
+   LogFlush(immutable_db_options_.info_log);
 
   }
   closing_status_ = CloseImpl();
