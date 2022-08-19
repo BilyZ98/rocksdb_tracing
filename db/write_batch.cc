@@ -686,7 +686,7 @@ Status WriteBatchInternal::Iterate(const WriteBatch* wb,
         break;
       case kTypeNoop:
         s = handler->MarkNoop(empty_batch);
-        // assert(s.ok());
+        assert(s.ok());
         empty_batch = true;
         break;
       case kTypeWideColumnEntity:
