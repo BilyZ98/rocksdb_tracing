@@ -1820,7 +1820,7 @@ Status DB::Open(const Options& options, const std::string& dbname, DB** dbptr) {
       delete handles[1];
     }
     delete handles[0];
-    s = DB::StartAllTrace(dbptr);
+    // s = DB::StartAllTrace(dbptr);
 
   }
   return s;
@@ -1834,7 +1834,7 @@ Status DB::Open(const DBOptions& db_options, const std::string& dbname,
   Status s = DBImpl::Open(db_options, dbname, column_families, handles, dbptr,
                       !kSeqPerBatch, kBatchPerTxn);
   if(s.ok()) {
-    s = DB::StartAllTrace(dbptr);
+    // s = DB::StartAllTrace(dbptr);
   }
 
   return s;
