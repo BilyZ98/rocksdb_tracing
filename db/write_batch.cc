@@ -156,6 +156,10 @@ struct BatchContentClassifier : public WriteBatch::Handler {
     content_flags |= ContentFlags::HAS_ROLLBACK;
     return Status::OK();
   }
+
+  Status MarkNoop(bool empty_batch ) override {
+    return Status::OK();
+  }
 };
 
 }  // anon namespace
