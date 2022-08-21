@@ -46,7 +46,7 @@ IOStatus FileSystemTracingWrapper::NewWritableFile(
   timer.Start();
   IOStatus s = target()->NewWritableFile(fname, file_opts, result, dbg);
   uint64_t elapsed = timer.ElapsedNanos();
-  IOTraceRecord io_record(clock_->NowNanos(), TraceType::kIOTracer,
+  IOTraceRecord io_record(clock_->NowMicros(), TraceType::kIOTracer,
                           0 /*io_op_data*/, __func__, elapsed, s.ToString(),
                           fname.substr(fname.find_last_of("/\\") + 1));
   io_tracer_->WriteIOOp(io_record, dbg);
