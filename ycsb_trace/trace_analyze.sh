@@ -36,3 +36,5 @@ io_trace_parser_exec="/home/bily/rocksdb_tracing/build/io_tracer_parser"
 io_parser_res="$data_dir/io_trace_res"
 $io_trace_parser_exec -io_trace_file="$io_trace_file_path" >  "$io_parser_res"
 
+
+./get_time.sh

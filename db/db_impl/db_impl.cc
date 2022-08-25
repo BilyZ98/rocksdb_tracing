@@ -768,6 +768,10 @@ DBImpl::~DBImpl() {
    ROCKS_LOG_INFO(immutable_db_options_.info_log, "End tracing successfully");
    LogFlush(immutable_db_options_.info_log);
 
+  } else {
+    ROCKS_LOG_INFO(immutable_db_options_.info_log, "Tracing not open");
+    LogFlush(immutable_db_options_.info_log);
+    fprintf(stdout, "Tracing not open\n");
   }
   closing_status_ = CloseImpl();
   closing_status_.PermitUncheckedError();
