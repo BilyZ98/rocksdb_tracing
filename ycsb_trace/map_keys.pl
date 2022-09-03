@@ -7,14 +7,16 @@ $out_file = "/tmp/trace_data_dir/op_trace_human_keys_remap.txt";
 
 
 
-@keys = `head -n10 $op_file | awk '{print $1}' `;
+@keys = system("head -n10 $op_file | awk \'{print \$1}\'");
+# @keys = `head -n10 $op_file | awk '{print $1}' `;
 
 chomp @keys;
 
 
 foreach $key (@keys) {
-  @fields = split(" ", $key);
-  print "@fields[0] \n";
+  print "$key";
+  # @fields = split(" ", $key);
+  # print "@fields[0] \n";
 }
 
 
@@ -24,6 +26,7 @@ print "arr size is $arr_size \n";
 $cnt = 1;
 
 
+exit;
 my %hash = ();
 
 # check hash exists
@@ -55,21 +58,29 @@ my @label_ids ;
 
 foreach $key(@keys) {
   @fields = split(" ", $key);
-  $key = @fields[0];
-  $key_id = $hash{$key};
-  print "$key: $key_id\n";
+  $f_key = @fields[0];
+  $key_id = $hash{$f_key};
+  # print "$key: $key_id\n";
+  push(@label_ids, $key_id);
 }
 
 
 
 
+# print "@label_ids\n";
 
 
 
+# open STDOUT, '>' '/tmp/myoutput.txt' or die $!;
+$id_tmp_file = "/tmp/id_tmp.txt";
+open(OUTFILE, "> $id_tmp_file") || die "could not open file";
+print OUTFILE  map {"$_\n"} @label_ids;
+close  OUTFILE;
 
 
-
-
+# system("cat $id_tmp_file");
+system("paste -d ' ' $id_tmp_file $op_file > $out_file");
+# `paste -d ' ' $id_t`
 
 
 
