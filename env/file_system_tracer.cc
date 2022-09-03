@@ -49,7 +49,7 @@ IOStatus FileSystemTracingWrapper::NewWritableFile(
   uint64_t elapsed = timer.ElapsedNanos();
   // printf("nano time is %lu\n", clock_->NowNanos());
   // printf("micros time is %lu\n", clock_->NowMicros());
-  IOTraceRecord io_record(clock_->NowMicros(), TraceType::kIOTracer,
+  IOTraceRecord io_record(clock_->NowNanos(), TraceType::kIOTracer,
                           0 /*io_op_data*/, __func__, elapsed, s.ToString(),
                           fname.substr(fname.find_last_of("/\\") + 1));
   io_tracer_->WriteIOOp(io_record, dbg);
