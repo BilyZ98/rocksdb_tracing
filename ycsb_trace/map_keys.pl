@@ -9,7 +9,7 @@ $out_file = "/tmp/trace_data_dir/op_trace_human_keys_remap.txt";
 
 
 
-@keys = qx(head -n10 $op_file | awk '{print \$1}');
+@keys = qx(  awk '{print \$1}' $op_file);
 # @keys = `head -n10 $op_file | awk '{print $1}' `;
 
 chomp @keys;
@@ -17,7 +17,7 @@ chomp @keys;
 # @keys = split('\n', $keys);
 
 foreach $key (@keys) {
-  print "$key\n";
+  # print "$key\n";
   # @fields = split(" ", $key);
   # print "@fields[0] \n";
 }
@@ -49,9 +49,9 @@ foreach $key (@keys) {
 }
 
 
-for my $key (keys %hash) {
-  print "$key : $hash{$key}\n";
-}
+# for my $key (keys %hash) {
+#   print "$key : $hash{$key}\n";
+# }
 
 $hash_size = keys %hash;
 print "hash size is $hash_size\n";
@@ -76,17 +76,30 @@ foreach $key(@keys) {
 # open STDOUT, '>' '/tmp/myoutput.txt' or die $!;
 $id_tmp_file = "/tmp/id_tmp.txt";
 
-$concat_keys = map {"$_\n"} @keys;
+# $concat_keys = map {"$_\n"} @label_ids;
 
-system("echo $concat_keys");
-# exit;
+$concat_keys = join("\n", @label_ids);
+
+# print "keys : @concat_keys\n";
+
+# print "$concat_keys";
+
+# qx(echo "$concat_keys" > $id_tmp_file);
 open(OUTFILE, "> $id_tmp_file") || die "could not open file";
-print OUTFILE  map {"$_\n"} @label_ids;
-close  OUTFILE;
+print OUTFILE  $concat_keys ;
+$res = qx(paste -d ' ' $id_tmp_file $op_file > $out_file);
+# print $res;
+
+
+print "paste successfully\n";
+# exit;
+
+# map {"$_\n"} @label_ids;
+# close  OUTFILE;
 
 
 # system("cat $id_tmp_file");
-system("paste -d ' ' $id_tmp_file $op_file > $out_file");
+# system("paste -d ' ' $id_tmp_file $op_file > $out_file");
 # `paste -d ' ' $id_t`
 
 
