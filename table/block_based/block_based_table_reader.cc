@@ -1682,6 +1682,11 @@ Status BlockBasedTable::MaybeReadBlockAndLoadToCache(
           is_cache_hit, no_insert, trace_block_type,
           /*block_size=*/usage, /*block_key=*/key.ToString(), nkeys);
     } else {
+      // This is a little bit confusing, 
+      // we have two   WriteBlockAccess call 
+      // Why don't we merge these two calls into one call ?
+      // Is this because we want more accurate timestamp ?
+
       // Avoid making copy of block_key and cf_name when constructing the access
       // record.
       BlockCacheTraceRecord access_record(

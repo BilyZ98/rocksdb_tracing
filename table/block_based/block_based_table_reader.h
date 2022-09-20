@@ -307,6 +307,7 @@ class BlockBasedTable : public TableReader {
   void operator=(const TableReader&) = delete;
 
  private:
+  friend class LRUHandleTable;
   friend class MockedBlockBasedTable;
   friend class BlockBasedTableReaderTestVerifyChecksum_ChecksumMismatch_Test;
   BlockCacheTracer* const block_cache_tracer_;

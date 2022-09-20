@@ -715,7 +715,10 @@ Status DBImpl::CloseHelper() {
   }
 
 
-  ROCKS_LOG_INFO(immutable_db_options_.info_log, "RocksDB:: End tracing in closeimpl");
+  // if(immutable_db_options_.info_log) {
+
+  //   ROCKS_LOG_INFO(immutable_db_options_.info_log, "End tracing in closeimpl");
+  // }
   LogFlush(immutable_db_options_.info_log);
 
   return ret;

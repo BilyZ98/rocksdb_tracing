@@ -16,6 +16,7 @@
 #include "monitoring/perf_context_imp.h"
 #include "monitoring/statistics.h"
 #include "port/lang.h"
+#include "trace_replay/block_cache_tracer.h"
 #include "util/distributed_mutex.h"
 
 namespace ROCKSDB_NAMESPACE {
@@ -64,6 +65,10 @@ LRUHandle* LRUHandleTable::Remove(const Slice& key, uint32_t hash) {
     *ptr = result->next_hash;
     --elems_;
   }
+  // add trace code here
+  BlockCacheTraceRecord access_record(
+
+      );
   return result;
 }
 

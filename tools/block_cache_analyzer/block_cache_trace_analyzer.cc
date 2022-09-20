@@ -1503,6 +1503,7 @@ Status BlockCacheTraceAnalyzer::RecordAccess(
     get_key_info_map_[user_key].AddAccess(access, access_sequence_number_);
   }
 
+  // this is interesting too
   if (compute_reuse_distance_) {
     // Add this block to all existing blocks.
     for (auto& cf_aggregates : cf_aggregates_map_) {
