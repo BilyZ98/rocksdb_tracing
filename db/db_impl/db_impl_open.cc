@@ -1,5 +1,3 @@
-//  Copyright (c) 2011-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under both the GPLv2 (found in the
 //  COPYING file in the root directory) and Apache 2.0 License
 //  (found in the LICENSE.Apache file in the root directory).
 //
@@ -23,6 +21,7 @@
 #include "options/options_helper.h"
 #include "rocksdb/table.h"
 #include "rocksdb/wal_filter.h"
+#include "table/block_based/block_based_table_factory.h"
 #include "test_util/sync_point.h"
 #include "util/rate_limiter.h"
 
@@ -1725,8 +1724,37 @@ static Status StartDBImplAllTrace(DBImpl *impl) {
   rocksdb::Env* env = rocksdb::Env::Default();
 
 
+  // Status s = rocksdb::NewFileTraceWriter(ioptions_.env, rocksdb::EnvOptions(),
+  //                               evict_block_cache_file,
+  //                               &evict_block_cache_writer);
+  // BlockCacheTracer* evict_block_tracer = ;
+  // evict_block_cache_tracer_ = new BlockCacheTracer;
+  // block_cache_trace option , std::move(trace_writer)
+  // evict_block_cache_tracer_->StartTrace(ImmutableDBOptions().clock,
+      // TraceOptions(), std::move(evict_block_cache_writer));
 
+  
   rocksdb::Status s;
+  std::string evict_block_cache_file =  "/tmp/evict_block_cache_trace_file";
+  std::unique_ptr<TraceWriter> evict_block_cache_writer;
+  s = rocksdb::NewFileTraceWriter(env, rocksdb::EnvOptions(),
+                                    evict_block_cache_file, &evict_block_cache_writer); 
+  if(!s.ok()) {
+    fprintf(stderr, "Encountered an error starting a evict trace, %s\n",
+              s.ToString().c_str());
+      return s;
+  }
+
+
+  db->StartEvictBlockCacheTrace(trace_options, std::move(evict_block_cache_writer));
+  if (!s.ok()) {
+    fprintf(stderr, "Error encoutnered starting evict block cache trace, %s\n",
+            s.ToString().c_str());
+  }
+  fprintf(stdout, "block cache trace workload to [%s]\n",
+          evict_block_cache_file.c_str());
+
+
   if (op_trace_file != "") {
     std::unique_ptr<rocksdb::TraceWriter> trace_writer;
     printf("RocksDB: before newfiletracewriter\n");
@@ -2088,6 +2116,9 @@ Status DBImpl::Open(const DBOptions& db_options, const std::string& dbname,
     for (auto cf : column_families) {
       auto cfd =
           impl->versions_->GetColumnFamilySet()->GetColumnFamily(cf.name);
+
+      BlockBasedTableFactory* block_based_table_factory = dynamic_cast<BlockBasedTableFactory*>(cf.options.table_factory.get());
+      block_based_table_factory->SetEvictBlockCacheTracer(impl->GetEvictBlockCacheTracer());
       if (cfd != nullptr) {
         handles->push_back(
             new ColumnFamilyHandleImpl(cfd, impl, &impl->mutex_));
@@ -2290,6 +2321,7 @@ Status DBImpl::Open(const DBOptions& db_options, const std::string& dbname,
 
   StartDBImplAllTrace(impl);
   impl->all_trace = true;
+
   return s;
 }
 }  // namespace ROCKSDB_NAMESPACE

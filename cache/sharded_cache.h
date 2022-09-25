@@ -14,6 +14,7 @@
 
 #include "port/port.h"
 #include "rocksdb/cache.h"
+#include "trace_replay/block_cache_tracer.h"
 
 namespace ROCKSDB_NAMESPACE {
 
@@ -61,6 +62,8 @@ class CacheShard {
       CacheMetadataChargePolicy metadata_charge_policy) {
     metadata_charge_policy_ = metadata_charge_policy;
   }
+
+  virtual void SetEvictBlockCacheTracer(BlockCacheTracer* tracer) {}
 
  protected:
   CacheMetadataChargePolicy metadata_charge_policy_ = kDontChargeCacheMetadata;

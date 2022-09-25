@@ -52,6 +52,7 @@
 #include "rocksdb/env.h"
 #include "rocksdb/memtablerep.h"
 #include "rocksdb/status.h"
+#include "trace_replay/block_cache_tracer.h"
 #ifndef ROCKSDB_LITE
 #include "rocksdb/trace_reader_writer.h"
 #endif  // ROCKSDB_LITE
@@ -566,6 +567,8 @@ class DBImpl : public DB {
                                 const std::string& fpath,
                                 const ReadOptions& read_options);
 
+  BlockCacheTracer* GetEvictBlockCacheTracer();
+
   using DB::StartTrace;
   virtual Status StartTrace(
       const TraceOptions& options,
@@ -585,8 +588,14 @@ class DBImpl : public DB {
       const TraceOptions& options,
       std::unique_ptr<TraceWriter>&& trace_writer) override;
 
+  Status StartEvictBlockCacheTrace(const TraceOptions& options,
+                                  std::unique_ptr<TraceWriter>&& trace_writer);
+
   using DB::EndBlockCacheTrace;
   Status EndBlockCacheTrace() override;
+
+
+  Status EndEvictBlockCacheTrace();
 
   using DB::StartIOTrace;
   Status StartIOTrace(const TraceOptions& options,
@@ -1272,6 +1281,7 @@ class DBImpl : public DB {
   std::unique_ptr<Tracer> tracer_;
   InstrumentedMutex trace_mutex_;
   BlockCacheTracer block_cache_tracer_;
+  BlockCacheTracer evict_block_cache_tracer_;
 
   // constant false canceled flag, used when the compaction is not manual
   const std::atomic<bool> kManualCompactionCanceledFalse_{false};

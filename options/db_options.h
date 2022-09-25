@@ -137,6 +137,8 @@ struct MutableDBOptions {
   bool strict_bytes_per_sync;
   size_t compaction_readahead_size;
   int max_background_flushes;
+
+  std::shared_ptr<Cache> block_cache;
 };
 
 #ifndef ROCKSDB_LITE

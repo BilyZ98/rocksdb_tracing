@@ -16,6 +16,7 @@
 #include "port/malloc.h"
 #include "port/port.h"
 #include "rocksdb/secondary_cache.h"
+#include "trace_replay/block_cache_tracer.h"
 #include "util/autovector.h"
 #include "util/distributed_mutex.h"
 
@@ -375,6 +376,8 @@ class ALIGN_AS(CACHE_LINE_SIZE) LRUCacheShard final : public CacheShard {
   //  Retrieves high pri pool ratio
   double GetHighPriPoolRatio();
 
+  void SetEvictBlockCacheTracer(BlockCacheTracer* tracer) override;
+
  private:
   friend class LRUCache;
   // Insert an item into the hash table and, if handle is null, insert into
@@ -457,6 +460,8 @@ class ALIGN_AS(CACHE_LINE_SIZE) LRUCacheShard final : public CacheShard {
   mutable DMutex mutex_;
 
   std::shared_ptr<SecondaryCache> secondary_cache_;
+
+  BlockCacheTracer* evict_block_cache_tracer_;
 };
 
 class LRUCache
@@ -488,6 +493,9 @@ class LRUCache
   size_t TEST_GetLRUSize();
   // Retrieves high pri pool ratio.
   double GetHighPriPoolRatio();
+
+
+  virtual void SetEvictBlockCacheTracer(void* tracer) override;
 
  private:
   LRUCacheShard* shards_ = nullptr;

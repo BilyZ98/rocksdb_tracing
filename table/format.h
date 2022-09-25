@@ -22,6 +22,8 @@
 #include "rocksdb/slice.h"
 #include "rocksdb/status.h"
 #include "rocksdb/table.h"
+#include "rocksdb/trace_record.h"
+#include "table/block_based/block_type.h"
 #include "util/hash.h"
 
 namespace ROCKSDB_NAMESPACE {
@@ -262,6 +264,10 @@ struct BlockContents {
   Slice data;
   CacheAllocationPtr allocation;
 
+  std::string cf_name;
+  uint64_t sst_id;
+  TraceType block_type;
+
 #ifndef NDEBUG
   // Whether there is a known trailer after what is pointed to by `data`.
   // See BlockBasedTable::GetCompressionType.
@@ -282,6 +288,14 @@ struct BlockContents {
       : data(_data.get(), _size) {
     allocation.reset(_data.release());
   }
+
+
+  // BlockContents(CacheAllocationPtr  && _data, const std::string& _cf_name, uint64_t _sst_id)
+  // : data(_data),
+  //   cf_name(_cf_name),
+  //   sst_id(_sst_id){
+
+  // }
 
   // Returns whether the object has ownership of the underlying data bytes.
   bool own_bytes() const { return allocation.get() != nullptr; }
@@ -312,6 +326,9 @@ struct BlockContents {
   BlockContents& operator=(BlockContents&& other) {
     data = std::move(other.data);
     allocation = std::move(other.allocation);
+    cf_name = std::move(other.cf_name);
+    sst_id = std::move(other.sst_id);
+    block_type = std::move(other.block_type);
 #ifndef NDEBUG
     is_raw_block = other.is_raw_block;
 #endif  // NDEBUG

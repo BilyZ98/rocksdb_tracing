@@ -150,6 +150,16 @@ class BlockCacheTraceAnalyzer {
       bool compute_reuse_distance, bool mrc_only,
       bool is_human_readable_trace_file,
       std::unique_ptr<BlockCacheTraceSimulator>&& cache_simulator);
+
+  BlockCacheTraceAnalyzer(
+      const std::string& trace_file_path, const std::string& evict_file_path, 
+      const std::string& output_dir,
+      const std::string& human_readable_trace_file_path,
+      bool compute_reuse_distance, bool mrc_only,
+      bool is_human_readable_trace_file,
+      std::unique_ptr<BlockCacheTraceSimulator>&& cache_simulator);
+
+
   ~BlockCacheTraceAnalyzer() = default;
   // No copy and move.
   BlockCacheTraceAnalyzer(const BlockCacheTraceAnalyzer&) = delete;
@@ -162,6 +172,12 @@ class BlockCacheTraceAnalyzer {
   // family. Subsequently, the caller may call Print* functions to print
   // statistics.
   Status Analyze();
+
+
+  void SetEvictTraceFile(std::string& evict_file_path);
+  void SetEvictTraceOutputHumanFile(std::string& evict_human_file);
+
+  Status AnalyzeWithEvict();
 
   // Print a summary of statistics of the trace, e.g.,
   // Number of files: 2 Number of blocks: 50 Number of accesses: 50
@@ -332,6 +348,8 @@ class BlockCacheTraceAnalyzer {
 
   Status RecordAccess(const BlockCacheTraceRecord& access);
 
+  Status RecordEvictAccess(const BlockCacheTraceRecord& access);
+
   void UpdateReuseIntervalStats(
       const std::string& label, const std::vector<uint64_t>& time_buckets,
       const std::map<uint64_t, uint64_t> timeline,
@@ -372,13 +390,16 @@ class BlockCacheTraceAnalyzer {
 
   ROCKSDB_NAMESPACE::Env* env_;
   const std::string trace_file_path_;
+  std::string evict_trace_file_path_;
   const std::string output_dir_;
   std::string human_readable_trace_file_path_;
+  std::string evict_human_readable_trace_file_path_;
   const bool compute_reuse_distance_;
   const bool mrc_only_;
   const bool is_human_readable_trace_file_;
 
   BlockCacheTraceHeader header_;
+  BlockCacheTraceHeader evict_header_;
   std::unique_ptr<BlockCacheTraceSimulator> cache_simulator_;
   std::map<std::string, ColumnFamilyAccessInfoAggregate> cf_aggregates_map_;
   std::map<std::string, BlockAccessInfo*> block_info_map_;
@@ -390,6 +411,7 @@ class BlockCacheTraceAnalyzer {
   uint64_t unique_block_id_ = 1;
   uint64_t unique_get_key_id_ = 1;
   BlockCacheHumanReadableTraceWriter human_readable_trace_writer_;
+  BlockCacheHumanReadableTraceWriter evict_human_readable_trace_writer_;
 };
 
 int block_cache_trace_analyzer_tool(int argc, char** argv);

@@ -284,12 +284,16 @@ class BlockCacheTracer {
   // GetId cycles from 1 to std::numeric_limits<uint64_t>::max().
   uint64_t NextGetId();
 
+  void SetEvictBlockCacheTracer(BlockCacheTracer* evict_tracer);
+  BlockCacheTracer* GetEvictBlockCacheTracer();
  private:
   TraceOptions trace_options_;
   // A mutex protects the writer_.
   InstrumentedMutex trace_writer_mutex_;
   std::atomic<BlockCacheTraceWriter*> writer_;
   std::atomic<uint64_t> get_id_counter_;
+
+  BlockCacheTracer* evict_block_cache_tracer_;
 };
 
 }  // namespace ROCKSDB_NAMESPACE

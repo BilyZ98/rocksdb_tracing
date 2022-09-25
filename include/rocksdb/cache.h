@@ -32,6 +32,7 @@
 #include "rocksdb/slice.h"
 #include "rocksdb/statistics.h"
 #include "rocksdb/status.h"
+// #include "trace_replay/block_cache_tracer.h"
 
 namespace ROCKSDB_NAMESPACE {
 
@@ -286,6 +287,8 @@ class Cache {
   //
   // @See Insert
   virtual ~Cache() {}
+
+  virtual void SetEvictBlockCacheTracer(void* tracer) {}
 
   // Opaque handle to an entry stored in the cache.
   struct Handle {};

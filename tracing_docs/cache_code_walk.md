@@ -155,3 +155,42 @@ But I don't have any access info for the table_->Remove()
 
 
 
+
+
+table_cache.cc
+  ioptions_ table_factory NewTableReader(ro, 
+  TableReaderOptions(block_cache_tracer))
+
+
+block_based_table_reader.h
+BlockBasedTabel::Rep()
+BlockBasedTable::Rep->BlockBasedTableOption
+  block_cache_;
+
+
+table/table_builder.h
+  TableReaderOptions;
+
+
+Can I register a pointer to the block_contents ? 
+
+
+
+
+PutDataBlockToCache(Cache* block_cache, CacheableEntry<TBlocklike>* cached_block,
+                    BlockContents* raw_block_contents,) {
+
+    std::unique_ptr<TBlocklike> block_holder;
+    block_holder.reset(BlocklikeTraits<TBlocklike>::Create(
+    std::move(*raw_block_contents),
+    ))
+
+    // uncompressed
+    InsertEntryToCache(block_cache, cache_key,
+                      block_holder, &cache_handle);
+  }
+
+InsertEntryToCache(block_cache, cache_key,
+                  block_holder, &cache_handle) {
+    block_cache->Insert(key, block_holder.get());
+}

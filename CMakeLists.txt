@@ -57,7 +57,10 @@ if(NOT CMAKE_BUILD_TYPE)
   endif()
   set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING
     "Default BUILD_TYPE is ${default_build_type}" FORCE)
+  message("this should not print")
 endif()
+
+message("cmake build type is ${CMAKE_BUILD_TYPE}" )
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -1000,7 +1003,7 @@ set(ROCKSDB_STATIC_LIB rocksdb${ARTIFACT_SUFFIX})
 set(ROCKSDB_SHARED_LIB rocksdb-shared${ARTIFACT_SUFFIX})
 
 option(ROCKSDB_BUILD_SHARED "Build shared versions of the RocksDB libraries" ON)
-
+message("build shared : ${ROCKSDB_BUILD_SHARED}")
 
 if(WIN32)
   set(SYSTEM_LIBS ${SYSTEM_LIBS} shlwapi.lib rpcrt4.lib)

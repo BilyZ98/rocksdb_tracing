@@ -762,6 +762,11 @@ Status BlockBasedTableFactory::ValidateOptions(
   return TableFactory::ValidateOptions(db_opts, cf_opts);
 }
 
+
+void BlockBasedTableFactory::SetEvictBlockCacheTracer(BlockCacheTracer *tracer) {
+  table_options_.block_cache.get()->SetEvictBlockCacheTracer(tracer);
+}
+
 std::string BlockBasedTableFactory::GetPrintableOptions() const {
   std::string ret;
   ret.reserve(20000);

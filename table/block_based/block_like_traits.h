@@ -7,6 +7,8 @@
 
 #include "cache/cache_entry_roles.h"
 #include "port/lang.h"
+#include "rocksdb/filter_policy.h"
+#include "rocksdb/statistics.h"
 #include "table/block_based/block.h"
 #include "table/block_based/block_type.h"
 #include "table/block_based/parsed_full_filter_block.h"
@@ -48,7 +50,22 @@ class BlocklikeTraits<BlockContents> {
                                Statistics* /* statistics */,
                                bool /* using_zstd */,
                                const FilterPolicy* /* filter_policy */) {
+#ifndef NDEBUG
+    printf("cf name :%s\n", contents.cf_name.c_str());
+#endif
     return new BlockContents(std::move(contents));
+  }
+
+  static BlockContents* CreateWithTraceInfo(BlockContents&& contents,
+                                            size_t,
+                                            Statistics*,
+                                            bool, 
+                                            const FilterPolicy*,
+                                            const std::string &cf_name,
+                                            uint64_t sst_id) {
+
+    return new BlockContents(std::move(contents));
+    // return new BlockContents(std::move(contents), cf_name, sst_id);
   }
 
   static uint32_t GetNumRestarts(const BlockContents& /* contents */) {
@@ -90,6 +107,19 @@ class BlocklikeTraits<ParsedFullFilterBlock> {
     return new ParsedFullFilterBlock(filter_policy, std::move(contents));
   }
 
+  static ParsedFullFilterBlock* CreateWithTraceInfo(BlockContents&& contents,
+                                       size_t /* read_amp_bytes_per_bit */,
+                                       Statistics* /* statistics */,
+                                       bool /* using_zstd */,
+                                       const FilterPolicy* filter_policy,
+                                       const std::string& cf_name,
+                                       uint64_t sst_id) {
+    contents.cf_name = cf_name;
+    contents.sst_id = sst_id;
+    return new ParsedFullFilterBlock(filter_policy, std::move(contents));
+  }
+
+
   static uint32_t GetNumRestarts(const ParsedFullFilterBlock& /* block */) {
     return 0;
   }
@@ -127,6 +157,17 @@ class BlocklikeTraits<Block> {
                        const FilterPolicy* /* filter_policy */) {
     return new Block(std::move(contents), read_amp_bytes_per_bit, statistics);
   }
+
+
+  static Block* CreateWithTraceInfo(BlockContents&& contents, size_t read_amp_bytes_per_bit,
+                     Statistics* statistics, bool /* using_zstd */,
+                     const FilterPolicy* /* filter_policy */,
+                     const std::string& cf_name,
+                     uint64_t sst_fnum) {
+    contents.cf_name = cf_name;
+    contents.sst_id = sst_fnum;
+    return new Block(std::move(contents), read_amp_bytes_per_bit, statistics);
+  } 
 
   static uint32_t GetNumRestarts(const Block& block) {
     return block.NumRestarts();
@@ -179,6 +220,21 @@ class BlocklikeTraits<UncompressionDict> {
     return new UncompressionDict(contents.data, std::move(contents.allocation),
                                  using_zstd);
   }
+
+  static UncompressionDict* CreateWithTraceInfo(BlockContents&& contents,
+                                   size_t /* read_amp_bytes_per_bit */,
+                                   Statistics* /* statistics */,
+                                   bool using_zstd,
+                                   const FilterPolicy* /* filter_policy */,
+                                   const std::string& cf_name,
+                                   uint64_t sst_fnum) {
+    contents.cf_name = cf_name;
+    contents.sst_id = sst_fnum;
+    return new UncompressionDict(contents.data, std::move(contents.allocation),
+                                 using_zstd);
+  }
+
+
 
   static uint32_t GetNumRestarts(const UncompressionDict& /* dict */) {
     return 0;

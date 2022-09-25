@@ -17,6 +17,7 @@
 #include "port/port.h"
 #include "rocksdb/flush_block_policy.h"
 #include "rocksdb/table.h"
+#include "trace_replay/block_cache_tracer.h"
 
 namespace ROCKSDB_NAMESPACE {
 struct ColumnFamilyOptions;
@@ -77,6 +78,8 @@ class BlockBasedTableFactory : public TableFactory {
   bool IsDeleteRangeSupported() const override { return true; }
 
   TailPrefetchStats* tail_prefetch_stats() { return &tail_prefetch_stats_; }
+
+  void SetEvictBlockCacheTracer(BlockCacheTracer* tracer);
 
  protected:
   const void* GetOptionsPtr(const std::string& name) const override;

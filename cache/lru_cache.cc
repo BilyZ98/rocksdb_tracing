@@ -16,6 +16,12 @@
 #include "monitoring/perf_context_imp.h"
 #include "monitoring/statistics.h"
 #include "port/lang.h"
+// #include "table/block_based/block.h"
+#include "rocksdb/options.h"
+#include "table/format.h"
+#include "table/table_reader.h"
+#include "table/table_reader_caller.h"
+#include "tools/block_cache_analyzer/block_cache_trace_analyzer.h"
 #include "trace_replay/block_cache_tracer.h"
 #include "util/distributed_mutex.h"
 
@@ -66,9 +72,7 @@ LRUHandle* LRUHandleTable::Remove(const Slice& key, uint32_t hash) {
     --elems_;
   }
   // add trace code here
-  BlockCacheTraceRecord access_record(
-
-      );
+  // BlockCacheTraceRecord access_record();
   return result;
 }
 
@@ -219,6 +223,11 @@ double LRUCacheShard::GetHighPriPoolRatio() {
   return high_pri_pool_ratio_;
 }
 
+
+void LRUCacheShard::SetEvictBlockCacheTracer(BlockCacheTracer *tracer) {
+  evict_block_cache_tracer_ = tracer;
+}
+
 void LRUCacheShard::LRU_Remove(LRUHandle* e) {
   assert(e->next != nullptr);
   assert(e->prev != nullptr);
@@ -284,6 +293,25 @@ void LRUCacheShard::EvictFromLRU(size_t charge,
     assert(usage_ >= old->total_charge);
     usage_ -= old->total_charge;
     deleted->push_back(old);
+
+    ImmutableOptions ioptions;
+    BlockContents* block_contents = reinterpret_cast<BlockContents*>(old->value);
+    TableReaderCaller caller = TableReaderCaller::kMaxBlockCacheLookupCaller;
+    BlockCacheTraceRecord access_record(
+      ioptions.clock->NowMicros(),
+      /*block_key=*/"", block_contents->block_type,
+      /*block_size=*/0, 0,
+      /*cf_name=*/"", /*level_for_tracing*/ 0,
+      block_contents->sst_id, caller, 1,
+      true, 0,
+      false,
+      /*referenced_key=*/"");
+
+    std::string referenced_key;
+      evict_block_cache_tracer_
+          ->WriteBlockAccess(access_record, old->key(), block_contents->cf_name,
+                             referenced_key)
+          .PermitUncheckedError();
   }
 }
 
@@ -730,6 +758,14 @@ double LRUCache::GetHighPriPoolRatio() {
     result = shards_[0].GetHighPriPoolRatio();
   }
   return result;
+}
+
+void LRUCache::SetEvictBlockCacheTracer(void *tracer) {
+
+  BlockCacheTracer* evict_tracer = reinterpret_cast<BlockCacheTracer*>(tracer);
+  for(int i=0; i < num_shards_; i++) {
+    shards_[i].SetEvictBlockCacheTracer(evict_tracer);
+  }
 }
 
 void LRUCache::WaitAll(std::vector<Handle*>& handles) {

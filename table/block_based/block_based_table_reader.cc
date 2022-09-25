@@ -651,6 +651,8 @@ Status BlockBasedTable::Open(
   rep->file = std::move(file);
   rep->footer = footer;
 
+  // rep->table_options.block_cache.get()->SetEvictBlockCacheTracer(block_cache_tracer_->GetEvictBlockCacheTracer());
+
   // For fully portable/stable cache keys, we need to read the properties
   // block before setting up cache keys. TODO: consider setting up a bootstrap
   // cache key for PersistentCache to use for metaindex and properties blocks.
@@ -1375,6 +1377,33 @@ Status BlockBasedTable::PutDataBlockToCache(
   Statistics* statistics = ioptions.stats;
 
   std::unique_ptr<TBlocklike> block_holder;
+  std::string cf_name = rep_->cf_name_for_tracing().ToString();
+  uint64_t sst_fnum = rep_->sst_number_for_tracing();
+
+  TraceType trace_block_type = TraceType::kTraceMax;
+    switch (block_type) {
+      case BlockType::kData:
+        trace_block_type = TraceType::kBlockTraceDataBlock;
+        break;
+      case BlockType::kFilter:
+      case BlockType::kFilterPartitionIndex:
+        trace_block_type = TraceType::kBlockTraceFilterBlock;
+        break;
+      case BlockType::kCompressionDictionary:
+        trace_block_type = TraceType::kBlockTraceUncompressionDictBlock;
+        break;
+      case BlockType::kRangeDeletion:
+        trace_block_type = TraceType::kBlockTraceRangeDeletionBlock;
+        break;
+      case BlockType::kIndex:
+        trace_block_type = TraceType::kBlockTraceIndexBlock;
+        break;
+      default:
+        // This cannot happen.
+        assert(false);
+        break;
+    }
+  raw_block_contents->block_type = trace_block_type;
   if (raw_block_comp_type != kNoCompression) {
     // Retrieve the uncompressed contents into a new buffer
     BlockContents uncompressed_block_contents;
@@ -1388,11 +1417,23 @@ Status BlockBasedTable::PutDataBlockToCache(
       return s;
     }
 
+    // block_holder.reset(BlocklikeTraits<TBlocklike>::CreateWithTraceInfo(
+    //       std::move(uncompressed_block_contents), read_amp_bytes_per_bit,
+    //       statistics, rep_->blocks_definitely_zstd_compressed,
+    //       rep_->table_options.filter_policy.get(),
+    //       rep_->cf_name_for_tracing().ToString(),
+    //       rep_->sst_number_for_tracing())); 
+    uncompressed_block_contents.cf_name = cf_name;
+    uncompressed_block_contents.sst_id = sst_fnum;
     block_holder.reset(BlocklikeTraits<TBlocklike>::Create(
         std::move(uncompressed_block_contents), read_amp_bytes_per_bit,
         statistics, rep_->blocks_definitely_zstd_compressed,
         rep_->table_options.filter_policy.get()));
+
   } else {
+
+    raw_block_contents->cf_name = cf_name;
+    raw_block_contents->sst_id = sst_fnum;
     block_holder.reset(BlocklikeTraits<TBlocklike>::Create(
         std::move(*raw_block_contents), read_amp_bytes_per_bit, statistics,
         rep_->blocks_definitely_zstd_compressed,
@@ -1538,6 +1579,7 @@ Status BlockBasedTable::MaybeReadBlockAndLoadToCache(
   Cache* block_cache_compressed =
       rep_->table_options.block_cache_compressed.get();
 
+  // printf("maybe read block and loada to cache\n");
   // First, try to get the block from the cache
   //
   // If either block cache is enabled, we'll try to read from it.

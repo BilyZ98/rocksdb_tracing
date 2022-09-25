@@ -9,6 +9,7 @@
 #include "db/db_impl/db_impl.h"
 
 #include <stdint.h>
+#include "trace_replay/block_cache_tracer.h"
 #ifdef OS_SOLARIS
 #include <alloca.h>
 #endif
@@ -763,6 +764,13 @@ DBImpl::~DBImpl() {
    if (!s.ok()) {
       fprintf(stderr,
           "Encountered an error ending the io tracing, %s\n",
+          s.ToString().c_str());
+    }
+
+    s = EndEvictBlockCacheTrace();
+    if(!s.ok()) {
+      fprintf(stderr,
+          "Encountered an error ending the  evict block cache tracing, %s\n",
           s.ToString().c_str());
     }
 
@@ -5487,6 +5495,10 @@ Status DBImpl::VerifyChecksumInternal(const ReadOptions& read_options,
   return s;
 }
 
+BlockCacheTracer* DBImpl::GetEvictBlockCacheTracer() {
+  return &evict_block_cache_tracer_;
+}
+
 Status DBImpl::VerifyFullFileChecksum(const std::string& file_checksum_expected,
                                       const std::string& func_name_expected,
                                       const std::string& fname,
@@ -5579,8 +5591,22 @@ Status DBImpl::StartBlockCacheTrace(
                                         trace_options, std::move(trace_writer));
 }
 
+
+Status DBImpl::StartEvictBlockCacheTrace(const TraceOptions &trace_options, std::unique_ptr<TraceWriter> &&trace_writer) {
+  return evict_block_cache_tracer_.StartTrace(immutable_db_options_.clock,
+      trace_options, std::move(trace_writer));
+}
+
+
+
 Status DBImpl::EndBlockCacheTrace() {
   block_cache_tracer_.EndTrace();
+  return Status::OK();
+}
+
+
+Status DBImpl::EndEvictBlockCacheTrace() {
+  evict_block_cache_tracer_.EndTrace();
   return Status::OK();
 }
 

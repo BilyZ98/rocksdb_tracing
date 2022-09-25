@@ -4,6 +4,9 @@
 2. correction of wiki of trace file human readable file format [done]
 3. improve the  speed of parser of block cache trace analyzer.
 
+4. optimize option() in flags initialize.
+  initialize once options.
+
 
 
 
