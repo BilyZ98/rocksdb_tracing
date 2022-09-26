@@ -139,6 +139,11 @@ LRUCacheShard::LRUCacheShard(
   lru_.prev = &lru_;
   lru_low_pri_ = &lru_;
   SetCapacity(capacity);
+  if(secondary_cache_.get()) {
+    printf("secondary cache not null\n");
+  } else {
+    // printf("secondary cache null\n");
+  }
 }
 
 void LRUCacheShard::EraseUnRefEntries() {
@@ -243,6 +248,28 @@ void LRUCacheShard::LRU_Remove(LRUHandle* e) {
     assert(high_pri_pool_usage_ >= e->total_charge);
     high_pri_pool_usage_ -= e->total_charge;
   }
+  ImmutableOptions ioptions;
+
+  BlockContents* block_contents = reinterpret_cast<BlockContents*>(e->value);
+  TableReaderCaller caller = TableReaderCaller::kMaxBlockCacheLookupCaller;
+  BlockCacheTraceRecord access_record(
+    ioptions.clock->NowMicros(),
+    /*block_key=*/"", block_contents->block_type,
+    /*block_size=*/0, 0,
+    /*cf_name=*/"", /*level_for_tracing*/ 0,
+    block_contents->sst_id, caller, 1,
+    true, 0,
+    false,
+    /*referenced_key=*/"");
+
+  if(evict_block_cache_tracer_) {
+
+    std::string referenced_key;
+      evict_block_cache_tracer_
+          ->WriteBlockAccess(access_record, e->key(), block_contents->cf_name,
+                             referenced_key)
+        .PermitUncheckedError();
+  }
 }
 
 void LRUCacheShard::LRU_Insert(LRUHandle* e) {
@@ -294,24 +321,7 @@ void LRUCacheShard::EvictFromLRU(size_t charge,
     usage_ -= old->total_charge;
     deleted->push_back(old);
 
-    ImmutableOptions ioptions;
-    BlockContents* block_contents = reinterpret_cast<BlockContents*>(old->value);
-    TableReaderCaller caller = TableReaderCaller::kMaxBlockCacheLookupCaller;
-    BlockCacheTraceRecord access_record(
-      ioptions.clock->NowMicros(),
-      /*block_key=*/"", block_contents->block_type,
-      /*block_size=*/0, 0,
-      /*cf_name=*/"", /*level_for_tracing*/ 0,
-      block_contents->sst_id, caller, 1,
-      true, 0,
-      false,
-      /*referenced_key=*/"");
 
-    std::string referenced_key;
-      evict_block_cache_tracer_
-          ->WriteBlockAccess(access_record, old->key(), block_contents->cf_name,
-                             referenced_key)
-          .PermitUncheckedError();
   }
 }
 
