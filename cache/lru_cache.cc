@@ -472,8 +472,8 @@ Cache::Handle* LRUCacheShard::Lookup(
       assert(e->InCache());
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
-        LRU_Remove(e);
         WriteEvictTrace(e);
+        LRU_Remove(e);
       }
       e->Ref();
       e->SetHit();
