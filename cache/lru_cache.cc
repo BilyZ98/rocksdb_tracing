@@ -154,7 +154,6 @@ void LRUCacheShard::EraseUnRefEntries() {
       LRUHandle* old = lru_.next;
       // LRU list contains only elements which can be evicted.
       assert(old->InCache() && !old->HasRefs());
-      WriteEvictTrace(old);
       LRU_Remove(old);
       table_.Remove(old->key(), old->hash);
       old->SetInCache(false);
@@ -165,6 +164,7 @@ void LRUCacheShard::EraseUnRefEntries() {
   }
 
   for (auto entry : last_reference_list) {
+    WriteEvictTrace(entry);
     entry->Free();
   }
 }
@@ -319,7 +319,6 @@ void LRUCacheShard::EvictFromLRU(size_t charge,
     LRUHandle* old = lru_.next;
     // LRU list contains only elements which can be evicted.
     assert(old->InCache() && !old->HasRefs());
-    WriteEvictTrace(old);
     LRU_Remove(old);
     table_.Remove(old->key(), old->hash);
     old->SetInCache(false);
@@ -395,7 +394,6 @@ Status LRUCacheShard::InsertItem(LRUHandle* e, Cache::Handle** handle,
         if (!old->HasRefs()) {
           // old is on LRU because it's in cache and its reference count is 0.
           LRU_Remove(old);
-          WriteEvictTrace(old);
           assert(usage_ >= old->total_charge);
           usage_ -= old->total_charge;
           last_reference_list.push_back(old);
@@ -421,6 +419,7 @@ Status LRUCacheShard::InsertItem(LRUHandle* e, Cache::Handle** handle,
       secondary_cache_->Insert(entry->key(), entry->value, entry->info_.helper)
           .PermitUncheckedError();
     }
+    WriteEvictTrace(entry);
     entry->Free();
   }
 
@@ -464,6 +463,7 @@ Cache::Handle* LRUCacheShard::Lookup(
     const ShardedCache::CacheItemHelper* helper,
     const ShardedCache::CreateCallback& create_cb, Cache::Priority priority,
     bool wait, Statistics* stats) {
+  bool remove = false;
   LRUHandle* e = nullptr;
   {
     DMutexLock l(mutex_);
@@ -472,12 +472,15 @@ Cache::Handle* LRUCacheShard::Lookup(
       assert(e->InCache());
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
-        WriteEvictTrace(e);
+        remove = true;
         LRU_Remove(e);
       }
       e->Ref();
       e->SetHit();
     }
+  }
+  if(remove && e) {
+    WriteEvictTrace(e);
   }
 
   // If handle table lookup failed, then allocate a handle outside the
@@ -640,7 +643,6 @@ void LRUCacheShard::Erase(const Slice& key, uint32_t hash) {
       e->SetInCache(false);
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
-        WriteEvictTrace(e);
         LRU_Remove(e);
         assert(usage_ >= e->total_charge);
         usage_ -= e->total_charge;
@@ -652,6 +654,7 @@ void LRUCacheShard::Erase(const Slice& key, uint32_t hash) {
   // Free the entry here outside of mutex for performance reasons.
   // last_reference will only be true if e != nullptr.
   if (last_reference) {
+    WriteEvictTrace(e);
     e->Free();
   }
 }
