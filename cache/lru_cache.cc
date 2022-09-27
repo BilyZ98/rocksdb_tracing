@@ -154,8 +154,8 @@ void LRUCacheShard::EraseUnRefEntries() {
       LRUHandle* old = lru_.next;
       // LRU list contains only elements which can be evicted.
       assert(old->InCache() && !old->HasRefs());
-      LRU_Remove(old);
       WriteEvictTrace(old);
+      LRU_Remove(old);
       table_.Remove(old->key(), old->hash);
       old->SetInCache(false);
       assert(usage_ >= old->total_charge);
@@ -319,8 +319,8 @@ void LRUCacheShard::EvictFromLRU(size_t charge,
     LRUHandle* old = lru_.next;
     // LRU list contains only elements which can be evicted.
     assert(old->InCache() && !old->HasRefs());
-    LRU_Remove(old);
     WriteEvictTrace(old);
+    LRU_Remove(old);
     table_.Remove(old->key(), old->hash);
     old->SetInCache(false);
     assert(usage_ >= old->total_charge);
@@ -640,8 +640,8 @@ void LRUCacheShard::Erase(const Slice& key, uint32_t hash) {
       e->SetInCache(false);
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
-        LRU_Remove(e);
         WriteEvictTrace(e);
+        LRU_Remove(e);
         assert(usage_ >= e->total_charge);
         usage_ -= e->total_charge;
         last_reference = true;
