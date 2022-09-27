@@ -155,6 +155,7 @@ void LRUCacheShard::EraseUnRefEntries() {
       // LRU list contains only elements which can be evicted.
       assert(old->InCache() && !old->HasRefs());
       LRU_Remove(old);
+      WriteEvictTrace(old);
       table_.Remove(old->key(), old->hash);
       old->SetInCache(false);
       assert(usage_ >= old->total_charge);
@@ -233,21 +234,7 @@ void LRUCacheShard::SetEvictBlockCacheTracer(BlockCacheTracer *tracer) {
   evict_block_cache_tracer_ = tracer;
 }
 
-void LRUCacheShard::LRU_Remove(LRUHandle* e) {
-  assert(e->next != nullptr);
-  assert(e->prev != nullptr);
-  if (lru_low_pri_ == e) {
-    lru_low_pri_ = e->prev;
-  }
-  e->next->prev = e->prev;
-  e->prev->next = e->next;
-  e->prev = e->next = nullptr;
-  assert(lru_usage_ >= e->total_charge);
-  lru_usage_ -= e->total_charge;
-  if (e->InHighPriPool()) {
-    assert(high_pri_pool_usage_ >= e->total_charge);
-    high_pri_pool_usage_ -= e->total_charge;
-  }
+void LRUCacheShard::WriteEvictTrace(LRUHandle* e) {
   ImmutableOptions ioptions;
 
   BlockContents* block_contents = reinterpret_cast<BlockContents*>(e->value);
@@ -270,6 +257,24 @@ void LRUCacheShard::LRU_Remove(LRUHandle* e) {
                              referenced_key)
         .PermitUncheckedError();
   }
+}
+
+void LRUCacheShard::LRU_Remove(LRUHandle* e) {
+  assert(e->next != nullptr);
+  assert(e->prev != nullptr);
+  if (lru_low_pri_ == e) {
+    lru_low_pri_ = e->prev;
+  }
+  e->next->prev = e->prev;
+  e->prev->next = e->next;
+  e->prev = e->next = nullptr;
+  assert(lru_usage_ >= e->total_charge);
+  lru_usage_ -= e->total_charge;
+  if (e->InHighPriPool()) {
+    assert(high_pri_pool_usage_ >= e->total_charge);
+    high_pri_pool_usage_ -= e->total_charge;
+  }
+  
 }
 
 void LRUCacheShard::LRU_Insert(LRUHandle* e) {
@@ -315,6 +320,7 @@ void LRUCacheShard::EvictFromLRU(size_t charge,
     // LRU list contains only elements which can be evicted.
     assert(old->InCache() && !old->HasRefs());
     LRU_Remove(old);
+    WriteEvictTrace(old);
     table_.Remove(old->key(), old->hash);
     old->SetInCache(false);
     assert(usage_ >= old->total_charge);
@@ -389,6 +395,7 @@ Status LRUCacheShard::InsertItem(LRUHandle* e, Cache::Handle** handle,
         if (!old->HasRefs()) {
           // old is on LRU because it's in cache and its reference count is 0.
           LRU_Remove(old);
+          WriteEvictTrace(old);
           assert(usage_ >= old->total_charge);
           usage_ -= old->total_charge;
           last_reference_list.push_back(old);
@@ -466,6 +473,7 @@ Cache::Handle* LRUCacheShard::Lookup(
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
         LRU_Remove(e);
+        WriteEvictTrace(e);
       }
       e->Ref();
       e->SetHit();
@@ -633,6 +641,7 @@ void LRUCacheShard::Erase(const Slice& key, uint32_t hash) {
       if (!e->HasRefs()) {
         // The entry is in LRU since it's in hash and has no external references
         LRU_Remove(e);
+        WriteEvictTrace(e);
         assert(usage_ >= e->total_charge);
         usage_ -= e->total_charge;
         last_reference = true;
