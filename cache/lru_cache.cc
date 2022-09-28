@@ -139,6 +139,7 @@ LRUCacheShard::LRUCacheShard(
   lru_.prev = &lru_;
   lru_low_pri_ = &lru_;
   SetCapacity(capacity);
+  evict_block_cache_tracer_ = nullptr;
   if(secondary_cache_.get()) {
     printf("secondary cache not null\n");
   } else {
