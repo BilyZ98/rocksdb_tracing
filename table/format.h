@@ -324,10 +324,15 @@ struct BlockContents {
   BlockContents(BlockContents&& other) noexcept { *this = std::move(other); }
 
   BlockContents& operator=(BlockContents&& other) {
+    if(other.sst_id == 0) {
+      printf("fnum is 0, fuck\n");
+      assert(false);
+
+    }
     data = std::move(other.data);
     allocation = std::move(other.allocation);
     cf_name = std::move(other.cf_name);
-    sst_id = std::move(other.sst_id);
+    sst_id =  other.sst_id;
     block_type = std::move(other.block_type);
 #ifndef NDEBUG
     is_raw_block = other.is_raw_block;
