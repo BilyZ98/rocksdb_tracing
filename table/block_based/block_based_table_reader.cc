@@ -1213,7 +1213,9 @@ Status BlockBasedTable::ReadMetaIndexBlock(
     return s;
   }
 
+
   *metaindex_block = std::move(metaindex);
+  // metaindex_block->get()->
   // meta block uses bytewise comparator.
   iter->reset(metaindex_block->get()->NewMetaIterator());
   return Status::OK();
@@ -1317,6 +1319,8 @@ Status BlockBasedTable::GetDataBlockFromCache(
   // Insert uncompressed block into block cache, the priority is based on the
   // data block type.
   if (s.ok()) {
+    contents.cf_name = rep_->cf_name_for_tracing().ToString();
+    contents.sst_id = rep_->sst_number_for_tracing();
     std::unique_ptr<TBlocklike> block_holder(
         BlocklikeTraits<TBlocklike>::Create(
             std::move(contents), read_amp_bytes_per_bit, statistics,
