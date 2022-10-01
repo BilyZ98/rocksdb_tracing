@@ -1510,8 +1510,10 @@ Status BlockCacheTraceAnalyzer::RecordEvictAccess(
     // I forget to include the block type info in the cached block
   if(block_type_aggr.block_access_info_map.find(access.block_key) == 
       block_type_aggr.block_access_info_map.end()) {
-    printf("something is wrong\n");
-    return  Status::Corruption();
+    printf("something is wrong, cf_name: %s , sst_fnum:access.sst_fd_number: %ld\n",
+        access.cf_name.c_str(), access.sst_fd_number);
+    // return  Status::Corruption();
+    return Status::OK();
   }
 
   BlockAccessInfo& block_access_info = 
