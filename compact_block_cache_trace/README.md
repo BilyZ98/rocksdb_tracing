@@ -12,6 +12,16 @@ The workflow should be
 ../ycsb_trace/evict_block_analyze.sh 
 &&  ./get_compact_block_trace.sh
 && python ./compact_block_trace.py
+&& ./block_cache_get_hit_rate.sh
+
+
+block_cache_get_hit_rate.py will receive block cache access for different caller(get, compaction, iterator) and then output cache hit rate file .
+
+
+
+./block_cache_get_hit_rate_change_dur.py
+will receive block cache access file and then output cache hit rate in some duration(1s, 100ms )
+
 
 
 

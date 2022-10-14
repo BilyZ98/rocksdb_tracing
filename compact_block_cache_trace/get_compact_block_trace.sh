@@ -9,3 +9,6 @@ output_compact_block_trace_file="/tmp/compact_block_trace/compact_block_trace_fi
 
 awk -F ',' '{if($9 == "10" && $14 == "1"){print}}' $all_block_trace_file > $output_compact_block_trace_file
 
+
+
+
