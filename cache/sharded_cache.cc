@@ -74,6 +74,12 @@ Status ShardedCache::Insert(const Slice& key, void* value,
       ->Insert(key, hash, value, helper, charge, handle, priority);
 }
 
+
+Cache::Handle* ShardedCache::LookupCompaction(const Slice &key, Statistics *stats) {
+  uint32_t hash = HashSlice(key);
+  return GetShard(Shard(hash))->LookupCompaction(key, hash);
+}
+
 Cache::Handle* ShardedCache::Lookup(const Slice& key, Statistics* /*stats*/) {
   uint32_t hash = HashSlice(key);
   return GetShard(Shard(hash))->Lookup(key, hash);
@@ -109,6 +115,10 @@ bool ShardedCache::Release(Handle* handle, bool erase_if_last_ref) {
   return GetShard(Shard(hash))->Release(handle, erase_if_last_ref);
 }
 
+bool ShardedCache::ReleaseCompaction(Handle *handle, bool erase_if_last_ref) {
+  uint32_t hash = GetHash(handle);
+  return GetShard(Shard(hash))->ReleaseCompaction(handle,   erase_if_last_ref);
+}
 bool ShardedCache::Release(Handle* handle, bool useful,
                            bool erase_if_last_ref) {
   uint32_t hash = GetHash(handle);

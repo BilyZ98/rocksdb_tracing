@@ -31,12 +31,14 @@ class CacheShard {
   virtual Status Insert(const Slice& key, uint32_t hash, void* value,
                         const Cache::CacheItemHelper* helper, size_t charge,
                         Cache::Handle** handle, Cache::Priority priority) = 0;
+  virtual Cache::Handle* LookupCompaction(const Slice& key, uint32_t hash){ return nullptr;} ;
   virtual Cache::Handle* Lookup(const Slice& key, uint32_t hash) = 0;
   virtual Cache::Handle* Lookup(const Slice& key, uint32_t hash,
                                 const Cache::CacheItemHelper* helper,
                                 const Cache::CreateCallback& create_cb,
                                 Cache::Priority priority, bool wait,
                                 Statistics* stats) = 0;
+  virtual bool ReleaseCompaction(Cache::Handle*, bool erase_if_last_ref) { return false;}; 
   virtual bool Release(Cache::Handle* handle, bool useful,
                        bool erase_if_last_ref) = 0;
   virtual bool IsReady(Cache::Handle* handle) = 0;
@@ -92,10 +94,13 @@ class ShardedCache : public Cache {
                         const CacheItemHelper* helper, size_t charge,
                         Handle** handle = nullptr,
                         Priority priority = Priority::LOW) override;
+  virtual Handle* LookupCompaction(const Slice& key, Statistics* stats) override;
   virtual Handle* Lookup(const Slice& key, Statistics* stats) override;
   virtual Handle* Lookup(const Slice& key, const CacheItemHelper* helper,
                          const CreateCallback& create_cb, Priority priority,
                          bool wait, Statistics* stats = nullptr) override;
+  virtual bool ReleaseCompaction(Handle* handle, 
+                                bool erase_if_last_ref = false) override; 
   virtual bool Release(Handle* handle, bool useful,
                        bool erase_if_last_ref = false) override;
   virtual bool IsReady(Handle* handle) override;

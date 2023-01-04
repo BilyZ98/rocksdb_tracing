@@ -1681,6 +1681,8 @@ struct ReadOptions {
   // Default: false
   bool async_io;
 
+  bool for_compaction = false;
+
   ReadOptions();
   ReadOptions(bool cksum, bool cache);
 };

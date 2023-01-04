@@ -23,5 +23,11 @@ block_cache_get_hit_rate.py will receive block cache access for different caller
 will receive block cache access file and then output cache hit rate in some duration(1s, 100ms )
 
 
+Command to get block cache trace information with hit rate control:
+```
+
+./db_bench --compression_type=none --benchmarks=readrandomwriterandom -num=20000000 -readwritepercent=50
+```
+
 
 

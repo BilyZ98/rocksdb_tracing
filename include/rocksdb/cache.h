@@ -317,6 +317,9 @@ class Cache {
                         DeleterFn deleter, Handle** handle = nullptr,
                         Priority priority = Priority::LOW) = 0;
 
+  // do not move positions of the entries in LRU list;
+  virtual Handle* LookupCompaction(const Slice& key, Statistics* stats = nullptr){return nullptr;} ;
+
   // If the cache has no mapping for "key", returns nullptr.
   //
   // Else return a handle that corresponds to the mapping.  The caller
@@ -332,6 +335,9 @@ class Cache {
   // REQUIRES: handle must have been returned by a method on *this.
   virtual bool Ref(Handle* handle) = 0;
 
+  virtual bool ReleaseCompaction(Handle* handle, bool erase_if_last_ref = false){ 
+    printf("abstract class ReleaseCompaction should not be called\n");
+    return false;} ;
   /**
    * Release a mapping returned by a previous Lookup(). A released entry might
    * still remain in cache in case it is later looked up by others. If

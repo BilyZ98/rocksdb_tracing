@@ -120,6 +120,7 @@ class GetContext {
              uint64_t tracing_get_id = 0, BlobFetcher* blob_fetcher = nullptr);
 
   GetContext() = delete;
+  // GetContext() { }
 
   // This can be called to indicate that a key may be present, but cannot be
   // confirmed due to IO not allowed
@@ -173,6 +174,9 @@ class GetContext {
 
   void push_operand(const Slice& value, Cleanable* value_pinner);
 
+  void SetForCompaction(bool for_comp) { for_compaction_ = for_comp; }
+  bool GetForCompaction() const { return for_compaction_; }
+
  private:
   void Merge(const Slice* value);
   bool GetBlobValue(const Slice& blob_index, PinnableSlice* blob_value);
@@ -182,6 +186,7 @@ class GetContext {
   // the merge operations encountered;
   Logger* logger_;
   Statistics* statistics_;
+  bool for_compaction_ = false;
 
   GetState state_;
   Slice user_key_;

@@ -383,13 +383,26 @@ Cache::Handle* BlockBasedTable::GetEntryFromCache(
     const CacheTier& cache_tier, Cache* block_cache, const Slice& key,
     BlockType block_type, const bool wait, GetContext* get_context,
     const Cache::CacheItemHelper* cache_helper,
-    const Cache::CreateCallback& create_cb, Cache::Priority priority) const {
+    const Cache::CreateCallback& create_cb, Cache::Priority priority,
+    bool for_compaction) const {
   Cache::Handle* cache_handle = nullptr;
   if (cache_tier == CacheTier::kNonVolatileBlockTier) {
-    cache_handle = block_cache->Lookup(key, cache_helper, create_cb, priority,
+    // printf("look up cache tier\n");
+    if(for_compaction) {
+      cache_handle = block_cache->LookupCompaction(key, rep_->ioptions.statistics.get());
+    } else {
+      cache_handle = block_cache->Lookup(key, cache_helper, create_cb, priority,
                                        wait, rep_->ioptions.statistics.get());
+    }
+    
   } else {
-    cache_handle = block_cache->Lookup(key, rep_->ioptions.statistics.get());
+    // cache_handle = block_cache->Lookup(key, rep_->ioptions.statistics.get());
+    printf("look up compaction, %d\n", for_compaction);
+    if(for_compaction) {
+      cache_handle = block_cache->LookupCompaction(key, rep_->ioptions.statistics.get());
+    } else {
+      cache_handle = block_cache->Lookup(key, rep_->ioptions.statistics.get());
+    }
   }
 
   if (cache_handle != nullptr) {
@@ -1263,7 +1276,7 @@ Status BlockBasedTable::GetDataBlockFromCache(
         rep_->ioptions.lowest_used_cache_tier, block_cache, cache_key,
         block_type, wait, get_context,
         BlocklikeTraits<TBlocklike>::GetCacheItemHelper(block_type), create_cb,
-        priority);
+        priority, read_options.for_compaction);
     if (cache_handle != nullptr) {
       block->SetCachedValue(
           reinterpret_cast<TBlocklike*>(block_cache->Value(cache_handle)),
@@ -1351,6 +1364,7 @@ Status BlockBasedTable::GetDataBlockFromCache(
   }
 
   // Release hold on compressed cache entry
+  printf("release compressed cache entry\n");
   block_cache_compressed->Release(block_cache_compressed_handle);
   return s;
 }
@@ -1597,9 +1611,22 @@ Status BlockBasedTable::MaybeReadBlockAndLoadToCache(
     key = key_data.AsSlice();
 
     if (!contents) {
-      s = GetDataBlockFromCache(key, block_cache, block_cache_compressed, ro,
+      // if(get_context) {
+      //   get_context->SetForCompaction(for_compaction);
+      // } else {
+      //   printf("get_context is null\n");
+      // }
+      // GetContext tmp_get_context;
+      // tmp_get_context.SetForCompaction(for_compaction);
+      ReadOptions tmp_ro(ro);
+      tmp_ro.for_compaction = true;
+      s = GetDataBlockFromCache(key, block_cache, block_cache_compressed, tmp_ro,
                                 block_entry, uncompression_dict, block_type,
                                 wait, get_context);
+      // if(get_context) {
+      //   get_context->SetForCompaction(!for_compaction);
+      // }
+      //
       // Value could still be null at this point, so check the cache handle
       // and update the read pattern for prefetching
       if (block_entry->GetValue() || block_entry->GetCacheHandle()) {

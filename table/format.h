@@ -325,7 +325,7 @@ struct BlockContents {
 
   BlockContents& operator=(BlockContents&& other) {
     if(other.sst_id == 0) {
-      printf("fnum is 0, fuck\n");
+      // printf("fnum is 0, fuck\n");
     }
     data = std::move(other.data);
     allocation = std::move(other.allocation);

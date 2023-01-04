@@ -459,6 +459,26 @@ void LRUCacheShard::Promote(LRUHandle* e) {
   }
 }
 
+Cache::Handle* LRUCacheShard::LookupCompaction( const Slice& key, uint32_t hash) {
+  LRUHandle* e = nullptr;
+  {
+    // printf("look up compaction\n");
+    DMutexLock l(mutex_);
+    e = table_.Lookup(key, hash);
+    if(e != nullptr) {
+      assert(e->InCache());
+      // no LRU_Remove();
+      if(!e->HasRefs()) {
+        printf("should be lru_removed\n");
+      }
+      e->Ref();
+      e->SetHit();
+    }
+
+  }
+
+  return reinterpret_cast<Cache::Handle*>(e);
+}
 Cache::Handle* LRUCacheShard::Lookup(
     const Slice& key, uint32_t hash,
     const ShardedCache::CacheItemHelper* helper,
@@ -558,6 +578,37 @@ void LRUCacheShard::SetHighPriorityPoolRatio(double high_pri_pool_ratio) {
   MaintainPoolSize();
 }
 
+bool LRUCacheShard::ReleaseCompaction(Cache::Handle *handle,  bool erase_if_last_ref) {
+  if(handle == nullptr) {
+    return false;
+  }
+
+  LRUHandle* e = reinterpret_cast<LRUHandle*>(handle);
+  bool last_reference = false;
+  
+  {
+    DMutexLock l(mutex_);
+    last_reference = e->Unref();
+    if(last_reference && e->InCache()) {
+      last_reference= false;
+    }
+
+    if(last_reference) {
+      LRU_Remove(e);
+    }
+    // if (last_reference && (!e->IsSecondaryCacheCompatible() || e->value)) {
+    //   assert(usage_ >= e->total_charge);
+    //   usage_ -= e->total_charge;
+    // }
+  }
+  if(last_reference) {
+    e->Free();
+  }
+  return last_reference;
+
+}
+
+
 bool LRUCacheShard::Release(Cache::Handle* handle, bool erase_if_last_ref) {
   if (handle == nullptr) {
     return false;
@@ -577,6 +628,7 @@ bool LRUCacheShard::Release(Cache::Handle* handle, bool erase_if_last_ref) {
         e->SetInCache(false);
       } else {
         // Put the item back on the LRU list, and don't free it.
+        // printf("LRU release\n");
         LRU_Insert(e);
         last_reference = false;
       }

@@ -108,7 +108,11 @@ TBlockIter* BlockBasedTable::NewDataBlockIterator(
     iter->SetCacheHandle(block.GetCacheHandle());
   }
 
-  block.TransferTo(iter);
+  if(for_compaction){
+    block.TransferToCompaction(iter);
+  } else {
+    block.TransferTo(iter);
+  }
 
   return iter;
 }

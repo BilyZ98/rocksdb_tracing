@@ -355,6 +355,13 @@ class ALIGN_AS(CACHE_LINE_SIZE) LRUCacheShard final : public CacheShard {
   }
   Cache::Handle* Lookup(const Slice& key, uint32_t hash) override;
 
+  Cache::Handle* LookupCompaction(const Slice&key, uint32_t hash) override {
+    return nullptr;
+  }
+
+  bool ReleaseCompaction(Cache::Handle*, bool erase_if_last_ref) override {
+    return false;
+  }
   bool Release(Cache::Handle* handle, bool /*useful*/,
                bool erase_if_last_ref) override {
     return Release(handle, erase_if_last_ref);

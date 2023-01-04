@@ -119,6 +119,20 @@ public:
     ResetFields();
   }
 
+  void TransferToCompaction(Cleanable* cleanable) {
+    if (cleanable) {
+      if (cache_handle_ != nullptr) {
+        assert(cache_ != nullptr);
+        cleanable->RegisterCleanup(&ReleaseCacheHandleCompaction, cache_, cache_handle_);
+      } else if (own_value_) {
+        cleanable->RegisterCleanup(&DeleteValue, value_, nullptr);
+      }
+    }
+
+    ResetFields();
+
+  }
+
   void TransferTo(Cleanable* cleanable) {
     if (cleanable) {
       if (cache_handle_ != nullptr) {
@@ -208,6 +222,16 @@ private:
    cache_ = nullptr;
    cache_handle_ = nullptr;
    own_value_ = false;
+ }
+
+ static void ReleaseCacheHandleCompaction(void* arg1, void* arg2) {
+   Cache* const cache = static_cast<Cache*>(arg1);
+   assert(cache);
+
+   Cache::Handle* const cache_handle = static_cast<Cache::Handle*>(arg2);
+   assert(cache_handle);
+
+   cache->ReleaseCompaction(cache_handle);
  }
 
   static void ReleaseCacheHandle(void* arg1, void* arg2) {

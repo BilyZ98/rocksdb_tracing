@@ -323,7 +323,8 @@ class BlockBasedTable : public TableReader {
                                    GetContext* get_context,
                                    const Cache::CacheItemHelper* cache_helper,
                                    const Cache::CreateCallback& create_cb,
-                                   Cache::Priority priority) const;
+                                   Cache::Priority priority,
+                                   bool for_compaction) const;
 
   template <typename TBlocklike>
   Status InsertEntryToCache(const CacheTier& cache_tier, Cache* block_cache,

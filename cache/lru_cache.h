@@ -330,6 +330,9 @@ class ALIGN_AS(CACHE_LINE_SIZE) LRUCacheShard final : public CacheShard {
     assert(helper);
     return Insert(key, hash, value, charge, nullptr, helper, handle, priority);
   }
+
+
+  virtual Cache::Handle* LookupCompaction(const Slice& key, uint32_t hash) override;
   // If helper_cb is null, the values of the following arguments don't matter.
   virtual Cache::Handle* Lookup(const Slice& key, uint32_t hash,
                                 const ShardedCache::CacheItemHelper* helper,
@@ -340,6 +343,9 @@ class ALIGN_AS(CACHE_LINE_SIZE) LRUCacheShard final : public CacheShard {
     return Lookup(key, hash, nullptr, nullptr, Cache::Priority::LOW, true,
                   nullptr);
   }
+
+  virtual bool ReleaseCompaction(Cache::Handle* handle, bool erase_if_last_ref) override ; 
+
   virtual bool Release(Cache::Handle* handle, bool /*useful*/,
                        bool erase_if_last_ref) override {
     return Release(handle, erase_if_last_ref);
