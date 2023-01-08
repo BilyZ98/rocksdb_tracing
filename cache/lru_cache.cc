@@ -460,24 +460,30 @@ void LRUCacheShard::Promote(LRUHandle* e) {
 }
 
 Cache::Handle* LRUCacheShard::LookupCompaction( const Slice& key, uint32_t hash) {
-  LRUHandle* e = nullptr;
-  {
-    // printf("look up compaction\n");
-    DMutexLock l(mutex_);
-    e = table_.Lookup(key, hash);
-    if(e != nullptr) {
-      assert(e->InCache());
-      // no LRU_Remove();
-      if(!e->HasRefs()) {
-        printf("should be lru_removed\n");
-      }
-      e->Ref();
-      e->SetHit();
-    }
+  // LRUHandle* e = nullptr;
+  // {
+  //   // printf("look up compaction\n");
+  //   DMutexLock l(mutex_);
+  //   e = table_.Lookup(key, hash);
+  //   if(e != nullptr) {
+  //     assert(e->InCache());
+  //     // no LRU_Remove();
+  //     if(!e->HasRefs()) {
+  //       // printf("should be lru_removed\n");
+  //       // The entry is in LRU since it's in hash and has no external references
+  //       // remove = true;
+  //       // maybe should add trace record here ? 
+  //       LRU_Remove(e);
+  //     }
+  //     e->Ref();
+  //     e->SetHit();
+  //   }
 
-  }
+  // }
 
-  return reinterpret_cast<Cache::Handle*>(e);
+  // return reinterpret_cast<Cache::Handle*>(e);
+  return Lookup(key, hash, nullptr, nullptr, Cache::Priority::LOW, true,
+                  nullptr);
 }
 Cache::Handle* LRUCacheShard::Lookup(
     const Slice& key, uint32_t hash,
@@ -579,33 +585,55 @@ void LRUCacheShard::SetHighPriorityPoolRatio(double high_pri_pool_ratio) {
 }
 
 bool LRUCacheShard::ReleaseCompaction(Cache::Handle *handle,  bool erase_if_last_ref) {
-  if(handle == nullptr) {
-    return false;
-  }
+  // if(handle == nullptr) {
+  //   return false;
+  // }
 
-  LRUHandle* e = reinterpret_cast<LRUHandle*>(handle);
-  bool last_reference = false;
-  
-  {
-    DMutexLock l(mutex_);
-    last_reference = e->Unref();
-    if(last_reference && e->InCache()) {
-      last_reference= false;
-    }
+  // LRUHandle* e = reinterpret_cast<LRUHandle*>(handle);
+  // bool last_reference = false;
+  // 
+  // {
+  //   DMutexLock l(mutex_);
+  //   last_reference = e->Unref();
+  //   if(last_reference && e->InCache()) {
+  //     if (usage_ > capacity_ || erase_if_last_ref) {
+  //       // The LRU list must be empty since the cache is full.
+  //       assert(lru_.next == &lru_ || erase_if_last_ref);
+  //       // Take this opportunity and remove the item.
+  //       table_.Remove(e->key(), e->hash);
+  //       e->SetInCache(false);
+  //     } else {
+  //       // The entry is still in lru I guess
+  //       // assert(e->next != nullptr);
+  //       // Put this one to the end of the lru list 
+  //       assert(e->next == nullptr);
+  //       assert(e->prev == nullptr);
+  //       e->next = (lru_low_pri_->next);
+  //       e->prev = lru_low_pri_;
+  //       e->prev->next = e;
+  //       e->next->prev = e;
+  //       e->SetInHighPriPool(false); 
+  //       lru_usage_ += e->total_charge;
+  //       // high_pri_pool_usage_ += e->total_charge;
+  //       // MaintainPoolSize();
+  //       last_reference= false;
+  //     }
+  //   }
 
-    if(last_reference) {
-      LRU_Remove(e);
-    }
-    // if (last_reference && (!e->IsSecondaryCacheCompatible() || e->value)) {
-    //   assert(usage_ >= e->total_charge);
-    //   usage_ -= e->total_charge;
-    // }
-  }
-  if(last_reference) {
-    e->Free();
-  }
-  return last_reference;
-
+  //   if(last_reference) {
+  //     printf("ReleaseCompaction: last reference & remove\n");
+  //     // LRU_Remove(e);
+  //   }
+  //   if (last_reference && (!e->IsSecondaryCacheCompatible() || e->value)) {
+  //     assert(usage_ >= e->total_charge);
+  //     usage_ -= e->total_charge;
+  //   }
+  // }
+  // if(last_reference) {
+  //   e->Free();
+  // }
+  // return last_reference;
+  return Release(handle, erase_if_last_ref);
 }
 
 

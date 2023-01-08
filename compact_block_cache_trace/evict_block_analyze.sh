@@ -1,5 +1,5 @@
 
-block_trace_tool="/home/bily/rocksdb_tracing/build/block_cache_trace_analyzer_tool"
+block_trace_tool="../build/block_cache_trace_analyzer_tool"
 
 $block_trace_tool \
   --block_cache_trace_path=/tmp/block_cache_trace_file \

@@ -1100,7 +1100,7 @@ endif()
 
 option(WITH_JNI "build with JNI" OFF)
 # Tests are excluded from Release builds
-CMAKE_DEPENDENT_OPTION(WITH_TESTS "build with tests" OFF
+CMAKE_DEPENDENT_OPTION(WITH_TESTS "build with tests" ON
   "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
 option(WITH_BENCHMARK_TOOLS "build with benchmarks" ON)
 option(WITH_CORE_TOOLS "build with ldb and sst_dump" ON)
@@ -1204,7 +1204,7 @@ if(NOT WIN32 OR ROCKSDB_INSTALL_ON_WINDOWS)
   )
 endif()
 
-option(WITH_ALL_TESTS "Build all test, rather than a small subset" ON)
+option(WITH_ALL_TESTS "Build all test, rather than a small subset" OFF)
 
 if(WITH_TESTS OR WITH_BENCHMARK_TOOLS)
   add_subdirectory(third-party/googletest)
@@ -1236,6 +1236,7 @@ if(WITH_TESTS)
   set(TESTS
         db/db_basic_test.cc
         env/env_basic_test.cc
+        db/compaction/compaction_job_test.cc
   )
   if(WITH_ALL_TESTS)
     message("we have all tests, what's going on here")
@@ -1260,7 +1261,6 @@ if(WITH_TESTS)
         db/compact_files_test.cc
         db/compaction/clipping_iterator_test.cc
         db/compaction/compaction_job_stats_test.cc
-        db/compaction/compaction_job_test.cc
         db/compaction/compaction_iterator_test.cc
         db/compaction/compaction_picker_test.cc
         db/compaction/compaction_service_test.cc
