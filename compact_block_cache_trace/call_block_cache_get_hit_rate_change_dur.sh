@@ -1,5 +1,5 @@
 
-branches=("lookup_compaction_orig" )
+branches=("lookup_compaction_orig" "compaction_blocks_to_lru_end")
 
 for branch in "${branches[@]}"; 
 do
