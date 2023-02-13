@@ -1,6 +1,10 @@
 
+branches=("lookup_compaction_orig" )
 
+for branch in "${branches[@]}"; 
+do
 
+  git checkout $branch
 pushd ../build
 rm -rf ./*
 cmake -DCMAKE_BUILD_TYPE=Release -DROCKSDB_BUILD_SHARED=0 .. && make -j16 #--block_size=16384
@@ -27,14 +31,15 @@ for block_size in "${block_sizes[@]}"; do
   block_acc_pat=(1 3 10)
   for i in "${block_acc_pat[@]}"; do
     # get blokck cache access info for each caller
-    caller_log=/tmp/compact_block_trace/block_cache_access_caller_$i
+    caller_log=/tmp/compact_block_trace/block_cache_access_caller_${branch}_${block_size}_${i}
     awk  -v access_type=$i -F ',' '{if($9 == access_type){print $1, $14}}' /tmp/block_trace_human_file  >  $caller_log
     # get total cache hit  rate 
 
-    awk 'BEGIN{total =0 ; hit_count=0;}{total+=1 ; if($14 == 1){hit_count +=1;}} END{print hit_count/total}' $caller_log > /tmp/compact_block_trace/block_cache_total_hit_rate_${block_size}_${i}
+    awk 'BEGIN{total =0 ; hit_count=0;}{total+=1 ; if($14 == 1){hit_count +=1;}} END{print hit_count/total}' $caller_log > /tmp/compact_block_trace/block_cache_total_hit_rate_${branch}_${block_size}_${i}
     # plot 
   ./block_cache_get_hit_rate_change_dur.sh $caller_log $block_size $i
   done
 
 
+done 
 done 
