@@ -20,7 +20,8 @@ then
   mkdir -p /tmp/compact_block_trace
 fi
 
-block_sizes=( 4096 16384 )
+# block_sizes=( 4096 16384 )
+block_sizes=(4096)
 for block_size in "${block_sizes[@]}"; do 
   # drop pagecache and dentries 
   sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
@@ -38,6 +39,7 @@ for block_size in "${block_sizes[@]}"; do
     awk 'BEGIN{total =0 ; hit_count=0;}{total+=1 ; if($14 == 1){hit_count +=1;}} END{print hit_count/total}' $caller_log > /tmp/compact_block_trace/block_cache_total_hit_rate_${branch}_${block_size}_${i}
     # plot 
   ./block_cache_get_hit_rate_change_dur.sh $caller_log $block_size $i
+  echo "lookup_compaction_orig branch"
   done
 
 
