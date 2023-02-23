@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include "rocksdb/rocksdb_namespace.h"
 
 namespace ROCKSDB_NAMESPACE {
@@ -20,7 +21,7 @@ class Cleanable {
   Cleanable& operator=(Cleanable&) = delete;
 
   // Executes all the registered cleanups
-  ~Cleanable();
+  virtual ~Cleanable();
 
   // Move constructor and move assignment is allowed.
   Cleanable(Cleanable&&) noexcept;
@@ -49,6 +50,10 @@ class Cleanable {
 
   inline bool HasCleanups() { return cleanup_.function != nullptr; }
 
+  virtual uint64_t GetId() const { return id_;}
+
+  virtual void SetId(uint64_t id) { id_ = id;}
+
  protected:
   struct Cleanup {
     CleanupFunction function;
@@ -61,6 +66,7 @@ class Cleanable {
   void RegisterCleanup(Cleanup* c);
 
  private:
+  uint64_t id_;
   // Performs all the cleanups. It does not reset the pointers. Making it
   // private
   // to prevent misuse

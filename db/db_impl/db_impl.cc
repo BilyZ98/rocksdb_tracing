@@ -1818,6 +1818,7 @@ InternalIterator* DBImpl::NewInternalIterator(const ReadOptions& read_options,
                       immutable_db_options_.avoid_unnecessary_blocking_io);
     internal_iter->RegisterCleanup(CleanupIteratorState, cleanup, nullptr);
 
+    internal_iter->SetId(block_cache_tracer_.NextIterId());
     return internal_iter;
   } else {
     CleanupSuperVersion(super_version);

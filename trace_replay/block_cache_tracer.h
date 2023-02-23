@@ -29,6 +29,8 @@ class BlockCacheTraceHelper {
   static bool IsGetOrMultiGetOnDataBlock(TraceType block_type,
                                          TableReaderCaller caller);
   static bool IsGetOrMultiGet(TableReaderCaller caller);
+  static bool IsIter(TableReaderCaller caller);
+  static bool IsCompaction(TableReaderCaller caller);
   static bool IsUserAccess(TableReaderCaller caller);
   // Row key is a concatenation of the access's fd_number and the referenced
   // user key.
@@ -86,6 +88,7 @@ struct BlockCacheLookupContext {
   // how many blocks a Get/MultiGet request accesses. We can also measure the
   // impact of row cache vs block cache.
   uint64_t get_id = 0;
+  uint64_t iter_id = 0;
   std::string referenced_key;
   bool get_from_user_specified_snapshot = false;
 
@@ -119,6 +122,7 @@ struct BlockCacheTraceRecord {
   Boolean no_insert = Boolean::kFalse;
   // Required field for Get and MultiGet
   uint64_t get_id = BlockCacheTraceHelper::kReservedGetId;
+  uint64_t iter_id = BlockCacheTraceHelper::kReservedGetId;
   Boolean get_from_user_specified_snapshot = Boolean::kFalse;
   std::string referenced_key;
   // Required fields for data block and user Get/Multi-Get only.
@@ -134,6 +138,7 @@ struct BlockCacheTraceRecord {
       uint32_t _level, uint64_t _sst_fd_number, TableReaderCaller _caller,
       bool _is_cache_hit, bool _no_insert,
       uint64_t _get_id = BlockCacheTraceHelper::kReservedGetId,
+      uint64_t _iter_id = BlockCacheTraceHelper::kReservedGetId,
       bool _get_from_user_specified_snapshot = false,
       std::string _referenced_key = "", uint64_t _referenced_data_size = 0,
       uint64_t _num_keys_in_block = 0,
@@ -150,6 +155,7 @@ struct BlockCacheTraceRecord {
         is_cache_hit(_is_cache_hit ? Boolean::kTrue : Boolean::kFalse),
         no_insert(_no_insert ? Boolean::kTrue : Boolean::kFalse),
         get_id(_get_id),
+        iter_id(_iter_id),
         get_from_user_specified_snapshot(_get_from_user_specified_snapshot
                                              ? Boolean::kTrue
                                              : Boolean::kFalse),
@@ -284,6 +290,8 @@ class BlockCacheTracer {
   // GetId cycles from 1 to std::numeric_limits<uint64_t>::max().
   uint64_t NextGetId();
 
+  uint64_t NextIterId();
+
   void SetEvictBlockCacheTracer(BlockCacheTracer* evict_tracer);
   BlockCacheTracer* GetEvictBlockCacheTracer();
  private:
@@ -292,6 +300,7 @@ class BlockCacheTracer {
   InstrumentedMutex trace_writer_mutex_;
   std::atomic<BlockCacheTraceWriter*> writer_;
   std::atomic<uint64_t> get_id_counter_;
+  std::atomic<uint64_t> iter_id_counter_;
 
   BlockCacheTracer* evict_block_cache_tracer_;
 };

@@ -1769,6 +1769,7 @@ Status BlockBasedTable::MaybeReadBlockAndLoadToCache(
           /*cf_name=*/"", rep_->level_for_tracing(),
           rep_->sst_number_for_tracing(), lookup_context->caller, is_cache_hit,
           no_insert, lookup_context->get_id,
+          lookup_context->iter_id,
           lookup_context->get_from_user_specified_snapshot,
           /*referenced_key=*/"");
       // TODO: Should handle this error?
@@ -2265,6 +2266,7 @@ Status BlockBasedTable::Get(const ReadOptions& read_options, const Slice& key,
             lookup_data_block_context.is_cache_hit,
             lookup_data_block_context.no_insert,
             lookup_data_block_context.get_id,
+            lookup_data_block_context.iter_id,
             lookup_data_block_context.get_from_user_specified_snapshot,
             /*referenced_key=*/"", referenced_data_size,
             lookup_data_block_context.num_keys_in_block,

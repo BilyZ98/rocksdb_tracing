@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "db/dbformat.h"
@@ -55,6 +56,7 @@ class InternalIteratorBase : public Cleanable {
   // Position at the last key in the source.  The iterator is
   // Valid() after this call iff the source is not empty.
   virtual void SeekToLast() = 0;
+
 
   // Position at the first key in the source that at or past target
   // The iterator is Valid() after this call iff the source contains

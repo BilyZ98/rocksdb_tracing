@@ -5,6 +5,7 @@
 
 #include "trace_replay/block_cache_tracer.h"
 
+#include <atomic>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
@@ -47,6 +48,14 @@ bool BlockCacheTraceHelper::IsGetOrMultiGetOnDataBlock(
 bool BlockCacheTraceHelper::IsGetOrMultiGet(TableReaderCaller caller) {
   return caller == TableReaderCaller::kUserGet ||
          caller == TableReaderCaller::kUserMultiGet;
+}
+
+bool BlockCacheTraceHelper::IsIter(TableReaderCaller caller) {
+  return caller == TableReaderCaller::kUserIterator;
+}
+
+bool BlockCacheTraceHelper::IsCompaction(TableReaderCaller caller) {
+  return caller == TableReaderCaller::kCompaction;
 }
 
 bool BlockCacheTraceHelper::IsUserAccess(TableReaderCaller caller) {
@@ -129,6 +138,9 @@ Status BlockCacheTraceWriter::WriteBlockAccess(
     PutFixed64(&trace.payload, record.get_id);
     trace.payload.push_back(record.get_from_user_specified_snapshot);
     PutLengthPrefixedSlice(&trace.payload, referenced_key);
+  }
+  if(BlockCacheTraceHelper::IsIter(record.caller) || BlockCacheTraceHelper::IsCompaction(record.caller)) {
+    PutFixed64(&trace.payload, record.iter_id);
   }
   if (BlockCacheTraceHelper::IsGetOrMultiGetOnDataBlock(record.block_type,
                                                         record.caller)) {
@@ -283,6 +295,13 @@ Status BlockCacheTraceReader::ReadAccess(BlockCacheTraceRecord* record) {
     }
     record->referenced_key = referenced_key.ToString();
   }
+  if(BlockCacheTraceHelper::IsIter(record->caller) || BlockCacheTraceHelper::IsCompaction(record->caller)) {
+    if(!GetFixed64(&enc_slice, &record->iter_id)) {
+      return Status::Incomplete(
+          "Incomplete access record: Failed to read the iter id.");
+    }
+    
+  }
   if (BlockCacheTraceHelper::IsGetOrMultiGetOnDataBlock(record->block_type,
                                                         record->caller)) {
     if (!GetFixed64(&enc_slice, &record->referenced_data_size)) {
@@ -301,6 +320,8 @@ Status BlockCacheTraceReader::ReadAccess(BlockCacheTraceRecord* record) {
     }
     record->referenced_key_exist_in_block = static_cast<Boolean>(enc_slice[0]);
   }
+
+
   return Status::OK();
 }
 
@@ -490,6 +511,17 @@ uint64_t BlockCacheTracer::NextGetId() {
   if (prev_value == BlockCacheTraceHelper::kReservedGetId) {
     // fetch and add again.
     return get_id_counter_.fetch_add(1);
+  }
+  return prev_value;
+}
+
+uint64_t BlockCacheTracer::NextIterId() {
+  if(!writer_.load(std::memory_order_relaxed)) {
+    return BlockCacheTraceHelper::kReservedGetId;
+  }
+  uint64_t prev_value = iter_id_counter_.fetch_add(1);
+  if(prev_value == BlockCacheTraceHelper::kReservedGetId) {
+    return iter_id_counter_.fetch_add(1);
   }
   return prev_value;
 }

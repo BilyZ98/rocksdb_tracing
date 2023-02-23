@@ -18,6 +18,7 @@ namespace ROCKSDB_NAMESPACE {
 Cleanable::Cleanable() {
   cleanup_.function = nullptr;
   cleanup_.next = nullptr;
+  id_ = 0; // invalid id 
 }
 
 Cleanable::~Cleanable() { DoCleanup(); }
