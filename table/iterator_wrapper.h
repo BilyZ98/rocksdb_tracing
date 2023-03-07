@@ -145,6 +145,15 @@ class IteratorWrapperBase {
     return iter_->IsValuePinned();
   }
 
+  void  SetId(uint64_t id) {
+    assert(iter_);
+    iter_->SetId(id);
+  }
+
+  uint64_t GetId() const {
+    assert(iter_);
+    return iter_->GetId();
+  }
   bool IsValuePrepared() const {
     return result_.value_prepared;
   }

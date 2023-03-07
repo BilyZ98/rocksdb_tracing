@@ -58,7 +58,16 @@ class MergingIterator : public InternalIterator {
     }
   }
 
+  virtual void SetId(uint64_t id) override{
+    InternalIterator::SetId(id);
+    for(auto &child: children_) {
+      child.SetId(id);
+    }
+  }
+
+
   virtual void AddIterator(InternalIterator* iter) {
+    iter->SetId(GetId());
     children_.emplace_back(iter);
     if (pinned_iters_mgr_) {
       iter->SetPinnedItersMgr(pinned_iters_mgr_);
@@ -350,6 +359,12 @@ class MergingIterator : public InternalIterator {
     assert(direction_ == kReverse);
     assert(maxHeap_);
     return !maxHeap_->empty() ? maxHeap_->top() : nullptr;
+  }
+
+  virtual void UpdateChildrenId() {
+    for(auto &child: children_) {
+       child.SetId(GetId());
+    }
   }
 };
 
