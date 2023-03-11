@@ -1151,6 +1151,7 @@ DEFINE_int64(
     "will not be logged if the trace file size exceeds this threshold. Default "
     "is 64 GB.");
 DEFINE_string(block_cache_trace_file, "", "Block cache trace file path.");
+DEFINE_string(evict_block_cache_trace_file, "", "Evict block cache trace file path");
 DEFINE_string(bench_io_trace_file, "", "FileSystem IO trace file path");
 DEFINE_int32(trace_replay_threads, 1,
              "The number of threads to replay, must >=1.");
@@ -3668,6 +3669,35 @@ class Benchmark {
           fprintf(stdout, "Tracing the workload to: [%s]\n",
                   FLAGS_trace_file.c_str());
         }
+ 
+        if(FLAGS_evict_block_cache_trace_file != "") {
+
+          rocksdb::Status s;
+          std::string evict_block_cache_file =  "/tmp/evict_block_cache_trace_file";
+          std::unique_ptr<TraceWriter> evict_block_cache_writer;
+          s = rocksdb::NewFileTraceWriter(FLAGS_env, EnvOptions(),
+                                            FLAGS_evict_block_cache_trace_file, 
+                                          &evict_block_cache_writer); 
+          if(!s.ok()) {
+            fprintf(stderr, "Encountered an error starting a evict trace, %s\n",
+                      s.ToString().c_str());
+              // return s;
+              ErrorExit();
+          }
+
+
+
+          dynamic_cast<DBImpl*>(db_.db)->StartEvictBlockCacheTrace(trace_options_, std::move(evict_block_cache_writer));  
+          // db_.db->StartEvictBlockCacheTrace(trace_options_, std::move(evict_block_cache_writer));
+          if (!s.ok()) {
+            fprintf(stderr, "Error encoutnered starting evict block cache trace, %s\n",
+                    s.ToString().c_str());
+              ErrorExit();
+          }
+          fprintf(stdout, "block cache trace workload to [%s]\n",
+                  evict_block_cache_file.c_str());
+        }
+
 
         if (!FLAGS_bench_io_trace_file.empty()) {
           std::unique_ptr<TraceWriter> io_trace_writer;

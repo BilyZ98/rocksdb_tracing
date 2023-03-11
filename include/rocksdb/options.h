@@ -485,6 +485,11 @@ struct DBOptions {
   // Default: false
   bool error_if_exists = false;
 
+  std::string op_trace_path = "/tmp/op_trace_file";
+  std::string block_cache_trace_path = "/tmp/block_cache_trace_file";
+  std::string io_trace_path = "/tmp/io_trace_file";
+  std::string evict_block_cache_trace_path = "/tmp/evict_block_cache_trace_file";
+
   // If true, RocksDB will aggressively check consistency of the data.
   // Also, if any of the  writes to the database fails (Put, Delete, Merge,
   // Write), the database will switch to read-only mode and fail all other

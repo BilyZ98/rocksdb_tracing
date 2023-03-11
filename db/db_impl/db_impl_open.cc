@@ -2319,7 +2319,7 @@ Status DBImpl::Open(const DBOptions& db_options, const std::string& dbname,
     *dbptr = nullptr;
   }
 
-  StartDBImplAllTrace(impl);
+  // StartDBImplAllTrace(impl);
   impl->all_trace = true;
 
   return s;
